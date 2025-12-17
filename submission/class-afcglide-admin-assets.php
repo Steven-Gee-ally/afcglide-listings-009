@@ -67,4 +67,5 @@ class AFCGlide_Admin_Assets {
     }
 }
 
-new AFCGlide_Admin_Assets();
+// DON'T auto-instantiate here - let the main plugin file handle it via init()
+// Remove this line: new AFCGlide_Admin_Assets();

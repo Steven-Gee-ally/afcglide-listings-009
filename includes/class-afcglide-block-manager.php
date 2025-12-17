@@ -63,23 +63,14 @@ class AFCGlide_Block_Manager {
 
     /**
      * Renders the block content on the front end.
-     * It reuses the Shortcode logic so we don't duplicate code.
+     * Uses the shortcode system for consistency.
      */
     public static function render_block( $attributes ) {
         
-        // Ensure the Shortcode class exists
-        if ( ! class_exists( __NAMESPACE__ . '\AFCGlide_Shortcodes' ) ) {
-            return '';
-        }
-
-        // Convert block attributes to shortcode attributes
-        $shortcode_atts = [
-            'posts_per_page' => isset($attributes['postsToShow']) ? $attributes['postsToShow'] : 6,
-            'featured'       => isset($attributes['showFeatured']) && $attributes['showFeatured'] ? 'true' : '',
-        ];
-
-        // Use the grid renderer we already built in File #9
-        return AFCGlide_Shortcodes::render_grid( $shortcode_atts );
+        // Convert block attributes to shortcode format
+        $posts_per_page = isset($attributes['postsToShow']) ? $attributes['postsToShow'] : 6;
+        
+        // Use WordPress do_shortcode to render the listings grid
+        return do_shortcode( "[afcglide_listings_grid posts_per_page='{$posts_per_page}']" );
     }
 }
-?>

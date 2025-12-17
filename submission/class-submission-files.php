@@ -193,4 +193,5 @@ class Submission_Files {
     }
 }
 
-new Submission_Files();
+// DON'T auto-instantiate here - let the main plugin file handle it
+// REMOVED: new Submission_Files();

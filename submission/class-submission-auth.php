@@ -30,12 +30,13 @@ class Submission_Auth {
 
     /**
      * Register authentication shortcodes
+     * FIX: Changed shortcode names to match page content
      */
     public function register_shortcodes() {
-        add_shortcode( 'afcg_login', [ $this, 'display_login_form' ] );
-        add_shortcode( 'afcg_register', [ $this, 'display_register_form' ] );
-        add_shortcode( 'afcg_logout_link', [ $this, 'display_logout_link' ] );
-        add_shortcode( 'afcg_user_status', [ $this, 'display_user_status' ] );
+        add_shortcode( 'afcglide_login', [ $this, 'display_login_form' ] );
+        add_shortcode( 'afcglide_register', [ $this, 'display_register_form' ] );
+        add_shortcode( 'afcglide_logout_link', [ $this, 'display_logout_link' ] );
+        add_shortcode( 'afcglide_user_status', [ $this, 'display_user_status' ] );
     }
 
     /**
@@ -102,7 +103,7 @@ class Submission_Auth {
                     </p>
                     <?php if ( get_option( 'users_can_register' ) ) : ?>
                     <p>
-                        <a href="<?php echo esc_url( home_url( '/register/' ) ); ?>">
+                        <a href="<?php echo esc_url( home_url( '/listing-register/' ) ); ?>">
                             <?php _e( 'Create an account', 'afcglide' ); ?>
                         </a>
                     </p>
@@ -155,6 +156,14 @@ class Submission_Auth {
         .afcglide-auth-links {
             margin-top: 15px;
             font-size: 0.9em;
+        }
+        .afcglide-logged-in-message {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
         }
         </style>
         <?php
@@ -215,7 +224,7 @@ class Submission_Auth {
                 <div class="afcglide-auth-links">
                     <p>
                         <?php _e( 'Already have an account?', 'afcglide' ); ?>
-                        <a href="<?php echo esc_url( home_url( '/login/' ) ); ?>">
+                        <a href="<?php echo esc_url( home_url( '/listing-login/' ) ); ?>">
                             <?php _e( 'Login here', 'afcglide' ); ?>
                         </a>
                     </p>
@@ -313,12 +322,6 @@ class Submission_Auth {
             Message_Helper::error( $user->get_error_message() );
             return;
         }
-
-        // Check user capability (optional - uncomment if needed)
-        // if ( ! $this->user_can_submit( $user ) ) {
-        //     Message_Helper::error( __( 'You do not have permission to submit listings.', 'afcglide' ) );
-        //     return;
-        // }
 
         // Log the user in
         $this->login_user( $user );
@@ -444,15 +447,6 @@ class Submission_Auth {
     }
 
     /**
-     * Check if user has permission to submit listings
-     */
-    private function user_can_submit( $user ) {
-        // Check if user has specific capability
-        // Modify this based on your requirements
-        return user_can( $user, 'edit_posts' );
-    }
-
-    /**
      * Log user in
      */
     private function login_user( $user ) {
@@ -503,8 +497,8 @@ class Submission_Auth {
         // Set success message
         Message_Helper::success( __( 'You have been logged out successfully.', 'afcglide' ) );
 
-        // Redirect to login page
-        $redirect_url = home_url( '/agent-login/' );
+        // Redirect to login page (FIX: Updated URL)
+        $redirect_url = home_url( '/listing-login/' );
         $redirect_url = apply_filters( 'afcglide_logout_redirect', $redirect_url );
 
         wp_safe_redirect( $redirect_url );
@@ -545,10 +539,10 @@ class Submission_Auth {
     }
 
     /**
-     * Get login URL with optional redirect
+     * Get login URL with optional redirect (FIX: Updated URL)
      */
     public static function get_login_url( $redirect_to = '' ) {
-        $login_url = home_url( '/agent-login/' );
+        $login_url = home_url( '/listing-login/' );
 
         if ( $redirect_to ) {
             $login_url = add_query_arg( 'redirect_to', urlencode( $redirect_to ), $login_url );
