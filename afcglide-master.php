@@ -1,248 +1,130 @@
 <?php
 /**
- * Plugin Name: AFCGlide Listings
- * Description: Modular real estate listings plugin with frontend submission and authentication.
- * Version: 2.3.0
- * Author: AFCGlide
- * Text Domain: afcglide
- * Domain Path: /languages
+ * Shortcodes for AFCGlide Listings
  */
 
 namespace AFCGlide\Listings;
 
-// --------------------------------------------------
-// Safety First
-// --------------------------------------------------
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-// --------------------------------------------------
-// Core Constants (KEEP AT TOP)
-// --------------------------------------------------
-define( 'AFCG_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
-define( 'AFCG_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'AFCG_VERSION', '2.3.0' );
+class AFCGlide_Shortcodes {
 
-// --------------------------------------------------
-// Safe Require Helper (Prevents Double Loads)
-// --------------------------------------------------
-if ( ! function_exists( __NAMESPACE__ . '\afcg_require_once_safe' ) ) {
-    function afcg_require_once_safe( $relative_path ) {
-        $full_path = AFCG_PLUGIN_DIR . ltrim( $relative_path, '/' );
-        if ( file_exists( $full_path ) ) {
-            require_once $full_path;
+    public static function init() {
+        add_shortcode( 'afcglide_listing_grid', [ __CLASS__, 'render_listing_grid' ] );
+        add_shortcode( 'afcglide_my_listings', [ __CLASS__, 'render_my_listings' ] );
+        add_shortcode( 'afcglide_submit_listing', [ __CLASS__, 'render_submit_form' ] );
+    }
+
+    public static function render_submit_form() {
+        if ( ! is_user_logged_in() ) {
+            $login_url = home_url( '/listing-login/' );
+            return '<div style="background:#fff3cd; padding:20px; border-radius:5px;"><p>You must be logged in to submit a listing. <a href="' . esc_url( $login_url ) . '">Login here</a>.</p></div>';
         }
+
+        ob_start();
+        ?>
+        <div class="afcglide-submit-form">
+            <h2>Submit a New Listing</h2>
+            <form method="post" enctype="multipart/form-data">
+                <?php wp_nonce_field( 'afcglide_new_listing', 'afcglide_nonce' ); ?>
+                <p><label>Title *</label><input type="text" name="listing_title" required style="width:100%; padding:10px;"></p>
+                <p><label>Description *</label><textarea name="listing_description" required rows="6" style="width:100%; padding:10px;"></textarea></p>
+                <p><label>Price</label><input type="text" name="listing_price" placeholder="$500,000" style="width:100%; padding:10px;"></p>
+                <p><label>Featured Image</label><input type="file" name="hero_image" accept="image/*"></p>
+                <p><button type="submit" style="background:#0073aa; color:white; padding:12px 24px; border:none; border-radius:3px; cursor:pointer; font-size:16px;">Submit Listing</button></p>
+            </form>
+        </div>
+        <?php
+        return ob_get_clean();
+    }
+
+    public static function render_my_listings() {
+        if ( ! is_user_logged_in() ) {
+            $login_url = home_url( '/listing-login/' );
+            return '<p>You must be logged in to view your listings. <a href="' . esc_url( $login_url ) . '">Login</a></p>';
+        }
+
+        $query = new \WP_Query( array(
+            'post_type'      => 'afcglide_listing',
+            'author'         => get_current_user_id(),
+            'posts_per_page' => -1,
+            'post_status'    => array( 'publish', 'pending', 'draft' )
+        ) );
+
+        ob_start();
+        ?>
+        <div class="afcglide-my-listings">
+            <h2>My Listings</h2>
+            <?php if ( $query->have_posts() ) : ?>
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr style="background:#f9f9f9;">
+                            <th style="padding:10px; text-align:left;">Title</th>
+                            <th style="padding:10px; text-align:left;">Status</th>
+                            <th style="padding:10px; text-align:left;">Date</th>
+                            <th style="padding:10px; text-align:left;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php while ( $query->have_posts() ) : $query->the_post(); ?>
+                            <tr style="border-bottom:1px solid #eee;">
+                                <td style="padding:10px;"><?php the_title(); ?></td>
+                                <td style="padding:10px;"><?php echo esc_html( get_post_status() ); ?></td>
+                                <td style="padding:10px;"><?php echo esc_html( get_the_date() ); ?></td>
+                                <td style="padding:10px;"><a href="<?php the_permalink(); ?>">View</a></td>
+                            </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            <?php else : ?>
+                <p>You have not submitted any listings yet. <a href="<?php echo esc_url( home_url( '/submit-listing/' ) ); ?>">Submit one now</a>!</p>
+            <?php endif; ?>
+            <?php wp_reset_postdata(); ?>
+        </div>
+        <?php
+        return ob_get_clean();
+    }
+
+    public static function render_listing_grid( $atts ) {
+        $atts = shortcode_atts( array( 'count' => 6 ), $atts );
+
+        $query = new \WP_Query( array(
+            'post_type'      => 'afcglide_listing',
+            'posts_per_page' => intval( $atts['count'] ),
+            'post_status'    => 'publish'
+        ) );
+
+        if ( ! $query->have_posts() ) {
+            return '<p>No listings found.</p>';
+        }
+
+        ob_start();
+        ?>
+        <div class="afcglide-grid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px;">
+            <?php while ( $query->have_posts() ) : $query->the_post(); ?>
+                <div class="afcglide-card" style="border:1px solid #eee; border-radius:8px; overflow:hidden;">
+                    <?php if ( has_post_thumbnail() ) : ?>
+                        <?php 
+                        $img_atts = array( 'style' => 'width:100%; height:200px; object-fit:cover;' );
+                        the_post_thumbnail( 'medium', $img_atts ); 
+                        ?>
+                    <?php endif; ?>
+                    <div style="padding:15px;">
+                        <h4 style="margin:0 0 10px;"><?php the_title(); ?></h4>
+                        <a href="<?php the_permalink(); ?>" style="color:#27ae60; font-weight:bold;">View Details →</a>
+                    </div>
+                </div>
+            <?php endwhile; ?>
+            <?php wp_reset_postdata(); ?>
+        </div>
+        <?php
+        return ob_get_clean();
     }
 }
 
-// --------------------------------------------------
-// Helpers (NO LOGIC — DEFINITIONS ONLY)
-// --------------------------------------------------
-afcg_require_once_safe( 'includes/helpers/helpers.php' );
-afcg_require_once_safe( 'includes/helpers/class-validator.php' );
-afcg_require_once_safe( 'includes/helpers/class-sanitizer.php' );
-afcg_require_once_safe( 'includes/helpers/class-message-helper.php' );
-afcg_require_once_safe( 'includes/helpers/class-upload-helper.php' );
-
-// --------------------------------------------------
-// Submission System (Auth, Listings, Files)
-// --------------------------------------------------
-afcg_require_once_safe( 'includes/submission/class-submission-auth.php' );
-afcg_require_once_safe( 'includes/submission/class-submission-listing.php' );
-afcg_require_once_safe( 'includes/submission/class-submission-files.php' );
-
-// --------------------------------------------------
-// Core Plugin Classes
-// --------------------------------------------------
-afcg_require_once_safe( 'includes/class-cpt-tax.php' );
-afcg_require_once_safe( 'includes/class-afcglide-public.php' );
-afcg_require_once_safe( 'includes/class-afcglide-admin-assets.php' );
-afcg_require_once_safe( 'includes/class-afcglide-templates.php' );
-afcg_require_once_safe( 'includes/class-afcglide-shortcodes.php' );
-afcg_require_once_safe( 'includes/class-afcglide-block-manager.php' );
-
-// --------------------------------------------------
-// Plugin Bootstrap (INITIALIZATION ONLY)
-// --------------------------------------------------
-function bootstrap_afcglide_listings() {
-
-    // CPTs & Taxonomies
-    if ( class_exists( __NAMESPACE__ . '\AFCGlide_CPT_Tax' ) ) {
-        AFCGlide_CPT_Tax::init();
-    }
-
-    // Public Assets
-    if ( class_exists( __NAMESPACE__ . '\AFCGlide_Public' ) ) {
-        AFCGlide_Public::init();
-    }
-
-    // Admin Assets
-    if ( class_exists( __NAMESPACE__ . '\AFCGlide_Admin_Assets' ) ) {
-        AFCGlide_Admin_Assets::init();
-    }
-
-    // Templates (KEEP THIS — REMOVE ANY DUPLICATES)
-    if ( class_exists( __NAMESPACE__ . '\AFCGlide_Templates' ) ) {
-        AFCGlide_Templates::init();
-    }
-
-    // Shortcodes
-    if ( class_exists( __NAMESPACE__ . '\AFCGlide_Shortcodes' ) ) {
-        AFCGlide_Shortcodes::init();
-    }
-
-    // Gutenberg Blocks
-    if ( class_exists( __NAMESPACE__ . '\AFCGlide_Block_Manager' ) ) {
-        AFCGlide_Block_Manager::init();
-    }
-
-    // Submission Auth (LOGIN PRIORITY)
-    if ( class_exists( __NAMESPACE__ . '\Submission\Submission_Auth' ) ) {
-        Submission\Submission_Auth::init();
-    }
-
-    // Submission Listing Handler
-    if ( class_exists( __NAMESPACE__ . '\Submission\Submission_Listing' ) ) {
-        Submission\Submission_Listing::init();
-    }
-
-    // File Upload Handler
-    if ( class_exists( __NAMESPACE__ . '\Submission\Submission_Files' ) ) {
-        Submission\Submission_Files::init();
-    }
-}
-
-add_action( 'plugins_loaded', __NAMESPACE__ . '\bootstrap_afcglide_listings' );
-
-// --------------------------------------------------
-// Plugin Activation Hook
-// --------------------------------------------------
-/**
- * Create required pages and flush rewrite rules on activation
- */
-function afcglide_activate() {
-    
-    // Create Submit Listing page
-    $submit_page = get_page_by_path( 'submit-listing' );
-    if ( ! $submit_page ) {
-        wp_insert_post([
-            'post_title'   => __( 'Submit Listing', 'afcglide' ),
-            'post_name'    => 'submit-listing',
-            'post_content' => '[afcglide_submit_listing]',
-            'post_status'  => 'publish',
-            'post_type'    => 'page',
-        ]);
-    }
-
-    // Create Login page
-    $login_page = get_page_by_path( 'listing-login' );
-    if ( ! $login_page ) {
-        wp_insert_post([
-            'post_title'   => __( 'Login', 'afcglide' ),
-            'post_name'    => 'listing-login',
-            'post_content' => '[afcglide_login]',
-            'post_status'  => 'publish',
-            'post_type'    => 'page',
-        ]);
-    }
-
-    // Create Register page
-    $register_page = get_page_by_path( 'listing-register' );
-    if ( ! $register_page ) {
-        wp_insert_post([
-            'post_title'   => __( 'Register', 'afcglide' ),
-            'post_name'    => 'listing-register',
-            'post_content' => '[afcglide_register]',
-            'post_status'  => 'publish',
-            'post_type'    => 'page',
-        ]);
-    }
-
-    // Create My Listings page (dashboard for users)
-    $dashboard_page = get_page_by_path( 'my-listings' );
-    if ( ! $dashboard_page ) {
-        wp_insert_post([
-            'post_title'   => __( 'My Listings', 'afcglide' ),
-            'post_name'    => 'my-listings',
-            'post_content' => '[afcglide_my_listings]',
-            'post_status'  => 'publish',
-            'post_type'    => 'page',
-        ]);
-    }
-
-    // Register CPT first (needed for flush_rewrite_rules to work)
-    if ( class_exists( __NAMESPACE__ . '\AFCGlide_CPT_Tax' ) ) {
-        AFCGlide_CPT_Tax::register_post_type();
-        AFCGlide_CPT_Tax::register_taxonomies();
-    }
-
-    // Flush rewrite rules to register custom post type permalinks
-    flush_rewrite_rules();
-}
-
-register_activation_hook( __FILE__, __NAMESPACE__ . '\afcglide_activate' );
-
-// --------------------------------------------------
-// Plugin Deactivation Hook
-// --------------------------------------------------
-/**
- * Clean up on plugin deactivation
- */
-function afcglide_deactivate() {
-    // Flush rewrite rules to clean up custom post type permalinks
-    flush_rewrite_rules();
-}
-
-register_deactivation_hook( __FILE__, __NAMESPACE__ . '\afcglide_deactivate' );
-
-// --------------------------------------------------
-// Plugin Uninstall Hook (Optional)
-// --------------------------------------------------
-/**
- * Clean up on plugin uninstall
- * This should be in a separate uninstall.php file, but included here for reference
- */
-function afcglide_uninstall() {
-    // Delete plugin pages (optional - you may want to keep them)
-    // $pages = ['submit-listing', 'listing-login', 'listing-register', 'my-listings'];
-    // foreach ( $pages as $page_slug ) {
-    //     $page = get_page_by_path( $page_slug );
-    //     if ( $page ) {
-    //         wp_delete_post( $page->ID, true );
-    //     }
-    // }
-
-    // Flush rewrite rules
-    flush_rewrite_rules();
-}
-
-// Uncomment if you want to use this:
-// register_uninstall_hook( __FILE__, __NAMESPACE__ . '\afcglide_uninstall' );
-
-/* --------------------------------------------------
-✅ NOTES & DOCUMENTATION
------------------------------------------------------
-
-FILE STRUCTURE:
-- All classes use static ::init() methods
-- Namespaces properly organized
-- No duplicate template loaders
-
-ACTIVATION CREATES:
-1. /submit-listing/ page with [afcglide_submit_listing]
-2. /listing-login/ page with [afcglide_login]
-3. /listing-register/ page with [afcglide_register]
-4. /my-listings/ page with [afcglide_my_listings]
-
-REQUIRED SHORTCODES (Must be registered in AFCGlide_Shortcodes):
-- [afcglide_submit_listing]
-- [afcglide_login] (handled by Submission_Auth)
-- [afcglide_register] (handled by Submission_Auth)
-- [afcglide_my_listings]
-
-NEXT STEPS:
-1. Deactivate and reactivate plugin
-2. Go to Settings → Permalinks and save
-3. Test pages at /listing-login/ and /listing-register/
-4. Ensure submission shortcode exists
-
--------------------------------------------------- */
+        // Register shortcodes on init (main bootstrap)
+        add_action( 'init', function() {
+            if ( class_exists( __NAMESPACE__ . '\AFCGlide_Shortcodes' ) ) {
+                AFCGlide_Shortcodes::init();
+            }
+        }, 10 );

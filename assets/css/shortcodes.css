@@ -1,0 +1,139 @@
+/**
+ * AFCGlide Listings - Shortcode Specific Styles
+ * This file handles the Grid, Slider, and Submission Form layouts.
+ */
+
+/* =========================================================
+  1. Grid Layout (The "Snap" to side-by-side)
+  ========================================================= */
+.afcglide-grid-ready {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+    margin: 20px 0;
+}
+
+/* =========================================================
+  2. Listing Card Design
+  ========================================================= */
+.afcglide-listing-card {
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+}
+
+.afcglide-listing-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* Card Media/Image area */
+.afcglide-card-media {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: #f0f0f0;
+}
+
+.afcglide-card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Price Overlay */
+.afcglide-card-price {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: #2271b1; /* WordPress Blue */
+    color: #fff;
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    z-index: 5;
+}
+
+/* Card Content Area */
+.afcglide-card-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.afcglide-card-title {
+    margin: 0 0 10px;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.afcglide-card-title a {
+    text-decoration: none;
+    color: #212529;
+}
+
+.afcglide-card-excerpt {
+    font-size: 0.9rem;
+    color: #646970;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+/* =========================================================
+  3. Buttons (Matching your Master Styles)
+  ========================================================= */
+.afcglide-btn {
+    display: inline-block;
+    background: #2271b1;
+    color: white !important;
+    text-align: center;
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    margin-top: auto;
+    transition: background 0.2s;
+}
+
+.afcglide-btn:hover {
+    background: #135e96;
+}
+
+/* =========================================================
+  4. Horizontal Slider (Section 7 from Master)
+  ========================================================= */
+.afcglide-card-slider-wrapper {
+    padding: 20px 0;
+    overflow: hidden;
+}
+
+.afcglide-card-slider {
+    display: flex;
+    gap: 24px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 20px;
+    scrollbar-width: thin;
+}
+
+.afcglide-slide {
+    flex: 0 0 320px;
+    scroll-snap-align: start;
+}
+
+/* =========================================================
+  5. Responsive Fixes
+  ========================================================= */
+@media (max-width: 768px) {
+    .afcglide-grid-ready {
+        grid-template-columns: 1fr;
+    }
+}
