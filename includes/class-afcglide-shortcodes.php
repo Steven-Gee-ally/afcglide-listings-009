@@ -2,6 +2,11 @@
 /**
  * Shortcodes for AFCGlide Listings
  *
+ * NOTE: This file defines the `AFCGlide_Shortcodes` class and is intended
+ * to be included by the plugin bootstrap (see `afcglide-master.php`).
+ * Do NOT treat this file as a standalone plugin file (no plugin headers
+ * or activation hooks should be added here).
+ *
  * @package AFCGlide_Listings
  */
 
