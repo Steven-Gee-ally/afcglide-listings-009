@@ -12,7 +12,8 @@ defined( 'ABSPATH' ) || exit;
 class AFCGlide_Shortcodes {
 
     public static function init() {
-        add_shortcode( 'afcglide_listing_grid', array( __CLASS__, 'render_listing_grid' ) );
+        // Use plural name 'afcglide_listings_grid' to match other parts of the plugin
+        add_shortcode( 'afcglide_listings_grid', array( __CLASS__, 'render_listing_grid' ) );
         add_shortcode( 'afcglide_my_listings', array( __CLASS__, 'render_my_listings' ) );
         add_shortcode( 'afcglide_submit_listing', array( __CLASS__, 'render_submit_form' ) );
     }
@@ -20,19 +21,20 @@ class AFCGlide_Shortcodes {
     public static function render_submit_form() {
         if ( ! is_user_logged_in() ) {
             $login_url = home_url( '/listing-login/' );
-            return '<div style="background:#fff3cd; padding:20px; border-radius:5px;"><p>You must be logged in. <a href="' . esc_url( $login_url ) . '">Login here</a>.</p></div>';
+            return '<div style="background:#fff3cd; padding:20px; border-radius:5px;"><p>' . sprintf( esc_html__( 'You must be logged in. %s', 'afcglide' ), '<a href="' . esc_url( $login_url ) . '">' . esc_html__( 'Login here', 'afcglide' ) . '</a>' ) . '</p></div>';
         }
 
         ob_start();
         echo '<div class="afcglide-submit-form">';
-        echo '<h2>Submit a New Listing</h2>';
-        echo '<form method="post" enctype="multipart/form-data">';
+        echo '<h2>' . esc_html__( 'Submit a New Listing', 'afcglide' ) . '</h2>';
+        echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" enctype="multipart/form-data">';
         wp_nonce_field( 'afcglide_new_listing', 'afcglide_nonce' );
+        echo '<input type="hidden" name="action" value="afcglide_submit_listing">';
         echo '<p><label>Title *</label><input type="text" name="listing_title" required style="width:100%; padding:10px;"></p>';
-        echo '<p><label>Description *</label><textarea name="listing_description" required rows="6" style="width:100%; padding:10px;"></textarea></p>';
-        echo '<p><label>Price</label><input type="text" name="listing_price" placeholder="$500,000" style="width:100%; padding:10px;"></p>';
-        echo '<p><label>Featured Image</label><input type="file" name="hero_image" accept="image/*"></p>';
-        echo '<p><button type="submit" style="background:#0073aa; color:white; padding:12px 24px; border:none; border-radius:3px; cursor:pointer;">Submit Listing</button></p>';
+        echo '<p><label>' . esc_html__( 'Description', 'afcglide' ) . ' *</label><textarea name="listing_description" required rows="6" style="width:100%; padding:10px;"></textarea></p>';
+        echo '<p><label>' . esc_html__( 'Price', 'afcglide' ) . '</label><input type="text" name="listing_price" placeholder="$500,000" style="width:100%; padding:10px;"></p>';
+        echo '<p><label>' . esc_html__( 'Featured Image', 'afcglide' ) . '</label><input type="file" name="hero_image" accept="image/*"></p>';
+        echo '<p><button type="submit" style="background:#0073aa; color:white; padding:12px 24px; border:none; border-radius:3px; cursor:pointer;">' . esc_html__( 'Submit Listing', 'afcglide' ) . '</button></p>';
         echo '</form>';
         echo '</div>';
         return ob_get_clean();
@@ -40,7 +42,7 @@ class AFCGlide_Shortcodes {
 
     public static function render_my_listings() {
         if ( ! is_user_logged_in() ) {
-            return '<p>You must be logged in. <a href="' . esc_url( home_url( '/listing-login/' ) ) . '">Login</a></p>';
+            return '<p>' . sprintf( esc_html__( 'You must be logged in. %s', 'afcglide' ), '<a href="' . esc_url( home_url( '/listing-login/' ) ) . '">' . esc_html__( 'Login', 'afcglide' ) . '</a>' ) . '</p>';
         }
 
         $query = new \WP_Query( array(
@@ -51,7 +53,7 @@ class AFCGlide_Shortcodes {
         ) );
 
         ob_start();
-        echo '<div class="afcglide-my-listings"><h2>My Listings</h2>';
+        echo '<div class="afcglide-my-listings"><h2>' . esc_html__( 'My Listings', 'afcglide' ) . '</h2>';
         
         if ( $query->have_posts() ) {
             echo '<table style="width:100%; border-collapse:collapse;">';
@@ -73,8 +75,8 @@ class AFCGlide_Shortcodes {
             }
             
             echo '</tbody></table>';
-        } else {
-            echo '<p>No listings yet. <a href="' . esc_url( home_url( '/submit-listing/' ) ) . '">Submit one now</a>!</p>';
+            } else {
+            echo '<p>' . sprintf( esc_html__( 'No listings yet. %s', 'afcglide' ), '<a href="' . esc_url( home_url( '/submit-listing/' ) ) . '">' . esc_html__( 'Submit one now', 'afcglide' ) . '</a>' ) . '!</p>';
         }
         
         wp_reset_postdata();
@@ -92,7 +94,7 @@ class AFCGlide_Shortcodes {
         ) );
 
         if ( ! $query->have_posts() ) {
-            return '<p>No listings found.</p>';
+            return '<p>' . esc_html__( 'No listings found.', 'afcglide' ) . '</p>';
         }
 
         ob_start();
