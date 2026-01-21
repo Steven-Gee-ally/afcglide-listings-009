@@ -21,7 +21,35 @@ class AFCGlide_Admin_UI {
         add_filter( 'login_headerurl', [ __CLASS__, 'custom_login_url' ] );
         add_filter( 'login_headertext', [ __CLASS__, 'custom_login_title' ] );
         add_filter( 'login_redirect', [ __CLASS__, 'agent_login_redirect' ], 10, 3 );
+        
         add_action( 'admin_enqueue_scripts', [ __CLASS__, 'global_admin_styles' ] );
+
+        // 🧹 CLEANUP: Hide the annoying "Custom Fields" meta box
+        add_action( 'add_meta_boxes', [ __CLASS__, 'clean_listing_edit_screen' ], 99 );
+    }
+
+    /**
+     * Remove standard WP clutter from the Listing Edit screen
+     */
+    public static function clean_listing_edit_screen() {
+        // ☢️ NUCLEAR OPTION: Remove support entirely so they can't even be enabled
+        remove_post_type_support( 'afcglide_listing', 'custom-fields' );
+        remove_post_type_support( 'afcglide_listing', 'comments' );
+        remove_post_type_support( 'afcglide_listing', 'trackbacks' );
+        
+        // Remove "Custom Fields" (legacy table that confuses users)
+        remove_meta_box( 'postcustom', 'afcglide_listing', 'normal' );
+        
+        // Remove "Comments" (Listings don't need comments)
+        remove_meta_box( 'commentsdiv', 'afcglide_listing', 'normal' );
+        
+        // Remove "Slug" (Auto-generated, no need to touch)
+        remove_meta_box( 'slugdiv', 'afcglide_listing', 'normal' );
+        
+        // Remove "Author" (Agents shouldn't reassign listings)
+        if ( ! current_user_can('manage_options') ) {
+            remove_meta_box( 'authordiv', 'afcglide_listing', 'normal' );
+        }
     }
 
     /**

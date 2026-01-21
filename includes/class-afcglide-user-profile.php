@@ -49,7 +49,70 @@ class AFCGlide_User_Profile {
      * Add custom styling to profile page
      */
     public static function profile_page_styles() {
-        // Styles moved to assets/css/afcglide-admin.css
+        ?>
+        <style>
+            /* 🎨 AFCGlide Premium Profile Styling */
+            .afc-profile-section {
+                background: white;
+                padding: 40px;
+                border-radius: 16px;
+                border: 1px solid #e2e8f0;
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+                margin: 30px 0;
+                border-left: 6px solid #0ea5e9; /* Sky Blue Brand */
+                max-width: 800px;
+            }
+            .afc-profile-section h2 {
+                padding: 0 0 20px 0 !important;
+                margin-bottom: 20px !important;
+                border-bottom: 2px solid #f1f5f9;
+                color: #0f172a;
+                font-size: 20px !important;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .afc-profile-section .form-table th { width: 200px; padding: 20px 10px 20px 0; }
+            .afc-profile-section .form-table td { padding: 15px 10px; }
+            .afc-profile-section input[type="text"], 
+            .afc-profile-section textarea {
+                background: #f8fafc;
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                padding: 10px;
+                transition: all 0.2s;
+            }
+            .afc-profile-section input[type="text"]:focus,
+            .afc-profile-section textarea:focus {
+                background: white;
+                border-color: #0ea5e9;
+                box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+            }
+
+            /* 👻 GHOST MODE: Hide Standard WP Clutter for Agents ONLY */
+            body.afc-agent-portal #your-profile > h2, /* Standard Headers */
+            body.afc-agent-portal #your-profile > h3,
+            body.afc-agent-portal .user-rich-editing-wrap,
+            body.afc-agent-portal .user-admin-color-wrap,
+            body.afc-agent-portal .user-comment-shortcuts-wrap,
+            body.afc-agent-portal .show-admin-bar,
+            body.afc-agent-portal .user-syntax-highlighting-wrap,
+            body.afc-agent-portal .user-url-wrap,
+            body.afc-agent-portal .user-description-wrap,
+            body.afc-agent-portal .user-profile-picture,
+            body.afc-agent-portal .user-sessions-wrap
+            { display: none !important; }
+
+            /* Ensure our section header remains visible */
+            body.afc-agent-portal .afc-profile-section h2 { display: flex !important; }
+            
+            /* Clean up the top for Agents */
+            body.afc-agent-portal .wrap > h1 { 
+                font-size: 24px; font-weight: 800; color: #0ea5e9; text-transform: uppercase; letter-spacing: 1px;
+                margin-bottom: 20px;
+            }
+        </style>
+        <?php
     }
 
     /**

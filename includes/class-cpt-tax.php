@@ -68,7 +68,7 @@ class AFCGlide_CPT_Tax {
             'map_meta_cap'        => true,
             'has_archive'         => 'listings',
             'rewrite'             => [ 'slug' => 'listings', 'with_front' => false ],
-            'supports'            => [ 'title', 'editor', 'thumbnail', 'author' ],
+            'supports'            => [ 'title', 'editor', 'thumbnail' ],
             'taxonomies'          => [ 'property_type', 'property_status', 'property_location', 'property_amenity' ],
             'show_in_rest'        => false,
         ];

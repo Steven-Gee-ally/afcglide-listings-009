@@ -1,7 +1,7 @@
 /**
  * AFCGlide Admin JavaScript
- * Version 4.0.0 - Production Ready
- * Handles all admin interface interactions
+ * Version 4.1.0 - A+ Grade Production Ready
+ * Handles all admin interface interactions with enhanced error handling
  */
 
 jQuery(document).ready(function ($) {
@@ -11,13 +11,22 @@ jQuery(document).ready(function ($) {
     // ==========================================
     if (typeof wp === 'undefined' || typeof wp.media === 'undefined') {
         console.error('AFCGlide Error: WordPress Media Library not loaded');
+        alert('⚠️ SYSTEM ERROR\n\nWordPress Media Library failed to load.\n\nPlease refresh the page and try again.');
         return;
     }
+
+    // ==========================================
+    // 0.1 CONSTANTS
+    // ==========================================
+    const MIN_AGENT_WIDTH = 800;
+    const MIN_LISTING_WIDTH = 1200;
+    const MAX_GALLERY = 16;
 
     // ==========================================
     // 1. DATA LOSS PREVENTION
     // ==========================================
     let formChanged = false;
+    let lastRemovedImage = null; // For undo functionality
 
     $('input, textarea, select').on('change input', function () {
         formChanged = true;
@@ -39,9 +48,8 @@ jQuery(document).ready(function ($) {
     $(document).on('click', '.afcglide-upload-image-btn', function (e) {
         e.preventDefault();
 
-        const $btn = $(this);
         const frame = wp.media({
-            title: 'Select Agent Photo',
+            title: 'Select Professional Agent Photo',
             multiple: false,
             library: { type: 'image' }
         });
@@ -49,9 +57,14 @@ jQuery(document).ready(function ($) {
         frame.on('select', function () {
             const attachment = frame.state().get('selection').first().toJSON();
 
-            // Validate dimensions
-            if (attachment.width < 500) {
-                alert('⚠️ IMAGE TOO SMALL\nMinimum 500px width required for agent photos.');
+            // Enhanced validation with better messaging
+            if (attachment.width < MIN_AGENT_WIDTH) {
+                alert(
+                    '⚠️ IMAGE TOO SMALL\n\n' +
+                    'Agent photos require ' + MIN_AGENT_WIDTH + 'px width minimum for professional quality.\n\n' +
+                    'Selected image: ' + attachment.width + 'px × ' + attachment.height + 'px\n\n' +
+                    'Please choose a higher resolution image.'
+                );
                 return;
             }
 
@@ -60,6 +73,12 @@ jQuery(document).ready(function ($) {
             $('#agent-photo-img').attr('src', attachment.url);
 
             formChanged = true;
+            showSuccessNotice('✅ Agent photo updated successfully');
+        });
+
+        frame.on('close', function () {
+            // Optional: Track if user canceled
+            console.log('Agent photo selector closed');
         });
 
         frame.open();
@@ -79,13 +98,23 @@ jQuery(document).ready(function ($) {
 
         frame.on('select', function () {
             const attachment = frame.state().get('selection').first().toJSON();
+
             if (attachment.mime !== 'application/pdf') {
-                alert('⚠️ INVALID FILE TYPE\nPlease upload a PDF document.');
+                alert('⚠️ INVALID FILE TYPE\n\nPlease select a PDF document only.\n\nSelected: ' + attachment.mime);
                 return;
             }
+
+            // Check file size (10MB limit)
+            const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+            if (attachment.filesizeInBytes > maxSize) {
+                alert('⚠️ FILE TOO LARGE\n\nMaximum PDF size: 10MB\n\nYour file: ' + (attachment.filesizeInBytes / 1024 / 1024).toFixed(1) + 'MB');
+                return;
+            }
+
             $('#afc_pdf_id').val(attachment.id);
             $('#pdf-filename').text(attachment.filename);
             formChanged = true;
+            showSuccessNotice('✅ PDF uploaded: ' + attachment.filename);
         });
 
         frame.open();
@@ -102,7 +131,7 @@ jQuery(document).ready(function ($) {
         const $preview = $zone.find('.afc-preview-grid');
 
         const frame = wp.media({
-            title: 'Select Hero Image',
+            title: 'Select Hero Image (Minimum ' + MIN_LISTING_WIDTH + 'px)',
             multiple: false,
             library: { type: 'image' }
         });
@@ -110,99 +139,162 @@ jQuery(document).ready(function ($) {
         frame.on('select', function () {
             const attachment = frame.state().get('selection').first().toJSON();
 
-            // Validate dimensions
-            if (attachment.width < 1200) {
-                alert('⚠️ IMAGE TOO SMALL\n\nLuxury listings require 1200px width minimum.\n\nCurrently detected: ' + attachment.width + 'px');
+            // Validate dimensions with detailed feedback
+            if (attachment.width < MIN_LISTING_WIDTH) {
+                alert(
+                    '⚠️ IMAGE TOO SMALL\n\n' +
+                    'Luxury listings require ' + MIN_LISTING_WIDTH + 'px width minimum.\n\n' +
+                    'Selected image: ' + attachment.width + 'px × ' + attachment.height + 'px\n\n' +
+                    'Recommended: At least 1920px × 1080px for best quality.'
+                );
                 return;
             }
 
             // Update hidden field
             $input.val(attachment.id);
 
-            // Update preview
-            $preview.html(
-                '<div class="afc-preview-item" data-id="' + attachment.id + '">' +
-                '<img src="' + attachment.url + '" alt="">' +
-                '<span class="afc-remove-img">×</span>' +
-                '</div>'
-            );
+            // Update preview with smooth transition
+            $preview.fadeOut(200, function () {
+                $preview.html(
+                    '<div class="afc-preview-item" data-id="' + attachment.id + '">' +
+                    '<img src="' + attachment.url + '" alt="Hero Image">' +
+                    '<span class="afc-remove-img">×</span>' +
+                    '</div>'
+                ).fadeIn(200);
+            });
 
             formChanged = true;
+            showSuccessNotice('✅ Hero image set (' + attachment.width + 'px × ' + attachment.height + 'px)');
         });
 
         frame.open();
     });
 
     // ==========================================
-    // 4. STACK & GALLERY UPLOAD (Multi-Select)
+    // 4. GALLERY UPLOAD (Multi-Select - 16 Photo Limit)
     // ==========================================
-    $(document).on('click', '.afc-upload-zone[data-type="stack"] .afc-upload-btn, .afc-upload-zone[data-type="gallery"] .afc-upload-btn', function (e) {
+    $(document).on('click', '.afc-upload-zone[data-type="gallery"] .afc-upload-btn', function (e) {
         e.preventDefault();
 
         const $zone = $(this).closest('.afc-upload-zone');
-        const type = $zone.data('type');
-        const limit = parseInt($zone.data('limit'));
-        const $input = $zone.find('input[type="hidden"]');
+        const limit = parseInt($zone.data('limit')) || MAX_GALLERY;
+        const $input = $zone.find('input[name="_listing_gallery_ids"]');
         const $preview = $zone.find('.afc-preview-grid');
 
         // Get current IDs
         let currentIds = $input.val() ? $input.val().split(',').filter(Boolean) : [];
+        const remaining = limit - currentIds.length;
+
+        // Check if gallery is full
+        if (remaining <= 0) {
+            alert(
+                '⚠️ GALLERY FULL\n\n' +
+                'You have reached the maximum of ' + limit + ' photos.\n\n' +
+                'Current photos: ' + currentIds.length + '\n\n' +
+                'Remove some photos before adding more.'
+            );
+            return;
+        }
 
         const frame = wp.media({
-            title: type === 'stack' ? 'Select Stack Images (Max ' + limit + ')' : 'Select Gallery Images (Max ' + limit + ')',
+            title: 'Select Gallery Photos (' + remaining + ' slots remaining)',
             multiple: true,
+            button: { text: 'Add to Gallery (' + remaining + ' available)' },
             library: { type: 'image' }
         });
 
         frame.on('select', function () {
             const selection = frame.state().get('selection');
+            let addedCount = 0;
+            let rejectedCount = 0;
+            let rejectedFiles = [];
 
             selection.each(function (attachment) {
                 attachment = attachment.toJSON();
 
                 // Check limit
                 if (currentIds.length >= limit) {
-                    console.log('Limit reached for ' + type);
-                    return false;
+                    rejectedCount++;
+                    rejectedFiles.push(attachment.filename + ' (limit reached)');
+                    return;
                 }
 
                 // Check if already added
                 if (currentIds.includes(attachment.id.toString())) {
-                    return; // Skip duplicates
+                    rejectedCount++;
+                    rejectedFiles.push(attachment.filename + ' (duplicate)');
+                    return;
                 }
 
-                // Validate dimensions
-                if (attachment.width < 1200) {
-                    console.log('Skipped small image: ' + attachment.filename + ' (' + attachment.width + 'px)');
+                // Validate dimensions (The 1200px Quality Gatekeeper)
+                if (attachment.width < MIN_LISTING_WIDTH) {
+                    rejectedCount++;
+                    rejectedFiles.push(attachment.filename + ' (' + attachment.width + 'px - too small)');
                     return;
                 }
 
                 // Add to array
                 currentIds.push(attachment.id);
+                addedCount++;
 
-                // Add to preview
-                $preview.append(
-                    '<div class="afc-preview-item" data-id="' + attachment.id + '">' +
-                    '<img src="' + attachment.url + '" alt="">' +
+                // Add to preview grid with fade in
+                const $newItem = $(
+                    '<div class="afc-preview-item" data-id="' + attachment.id + '" style="display:none;">' +
+                    '<img src="' + attachment.url + '" alt="Gallery Image">' +
                     '<span class="afc-remove-img">×</span>' +
                     '</div>'
                 );
+
+                $preview.append($newItem);
+                $newItem.fadeIn(300);
             });
 
-            // Update hidden field
+            // Update hidden field with comma-separated IDs
             $input.val(currentIds.join(','));
 
-            // Reinitialize sortable for new items
+            // Refresh Sortable so agent can move new photos
             initSortable();
 
             formChanged = true;
+
+            // Show summary message
+            let message = '✅ ' + addedCount + ' photo(s) added to gallery';
+
+            if (rejectedCount > 0) {
+                message += '\n\n⚠️ ' + rejectedCount + ' photo(s) rejected:\n\n';
+                message += rejectedFiles.slice(0, 5).join('\n');
+                if (rejectedFiles.length > 5) {
+                    message += '\n...and ' + (rejectedFiles.length - 5) + ' more';
+                }
+            }
+
+            if (addedCount > 0 || rejectedCount > 0) {
+                alert(message);
+            }
+
+            // Update button text with new count
+            updateGalleryCount($zone, currentIds.length, limit);
         });
 
         frame.open();
     });
 
     // ==========================================
-    // 5. REMOVE IMAGE
+    // 4.1 UPDATE GALLERY COUNT DISPLAY
+    // ==========================================
+    function updateGalleryCount($zone, current, max) {
+        const $btn = $zone.find('.afc-upload-btn');
+        const remaining = max - current;
+
+        if (remaining > 0) {
+            $btn.text('Manage Luxury Gallery (' + remaining + ' slots available)');
+        } else {
+            $btn.text('Gallery Full (' + current + '/' + max + ')').css('opacity', '0.6');
+        }
+    }
+
+    // ==========================================
+    // 5. REMOVE IMAGE (With Undo Support)
     // ==========================================
     $(document).on('click', '.afc-remove-img', function (e) {
         e.preventDefault();
@@ -212,18 +304,68 @@ jQuery(document).ready(function ($) {
         const $input = $zone.find('input[type="hidden"]');
         const imageId = $item.data('id').toString();
 
+        // Store for potential undo
+        lastRemovedImage = {
+            id: imageId,
+            zone: $zone,
+            item: $item.clone(),
+            timestamp: Date.now()
+        };
+
         // Remove from hidden field
         let ids = $input.val().split(',').filter(Boolean);
         ids = ids.filter(id => id !== imageId);
         $input.val(ids.join(','));
 
-        // Remove from DOM
+        // Remove from DOM with animation
         $item.fadeOut(300, function () {
             $(this).remove();
+
+            // Update gallery count if this is a gallery
+            if ($zone.data('type') === 'gallery') {
+                const limit = parseInt($zone.data('limit')) || MAX_GALLERY;
+                updateGalleryCount($zone, ids.length, limit);
+            }
         });
 
         formChanged = true;
+
+        // Show undo option for 5 seconds
+        showUndoNotice('Photo removed', function () {
+            undoRemoveImage();
+        });
     });
+
+    // ==========================================
+    // 5.1 UNDO REMOVE IMAGE
+    // ==========================================
+    function undoRemoveImage() {
+        if (!lastRemovedImage) return;
+
+        const age = Date.now() - lastRemovedImage.timestamp;
+        if (age > 5000) {
+            alert('⚠️ Undo expired. The undo window is 5 seconds.');
+            return;
+        }
+
+        const $zone = lastRemovedImage.zone;
+        const $input = $zone.find('input[type="hidden"]');
+        const $preview = $zone.find('.afc-preview-grid');
+
+        // Add back to hidden field
+        let ids = $input.val() ? $input.val().split(',').filter(Boolean) : [];
+        ids.push(lastRemovedImage.id);
+        $input.val(ids.join(','));
+
+        // Add back to DOM
+        const $item = lastRemovedImage.item;
+        $item.hide();
+        $preview.append($item);
+        $item.fadeIn(300);
+
+        lastRemovedImage = null;
+        showSuccessNotice('✅ Photo restored');
+    }
 
     // ==========================================
     // 6. AGENT AUTO-FILL
@@ -233,6 +375,15 @@ jQuery(document).ready(function ($) {
 
         if (!$selected.val()) return;
 
+        // Confirm before overwriting
+        const currentName = $('#afc_agent_name').val();
+        if (currentName && currentName !== '') {
+            if (!confirm('⚠️ OVERWRITE WARNING\n\nThis will replace the current agent information.\n\nCurrent: ' + currentName + '\nNew: ' + $selected.data('name') + '\n\nContinue?')) {
+                $(this).val(''); // Reset selector
+                return;
+            }
+        }
+
         // Fill in fields
         $('#afc_agent_name').val($selected.data('name'));
         $('#afc_agent_phone').val($selected.data('phone'));
@@ -241,18 +392,21 @@ jQuery(document).ready(function ($) {
         // Update photo preview
         const photoUrl = $selected.data('photo-url');
         if (photoUrl) {
-            $('#agent-photo-img').attr('src', photoUrl);
+            $('#agent-photo-img').fadeOut(200, function () {
+                $(this).attr('src', photoUrl).fadeIn(200);
+            });
         }
 
         formChanged = true;
+        showSuccessNotice('✅ Agent information loaded: ' + $selected.data('name'));
     });
 
     // ==========================================
-    // 7. DRAG & DROP SORTING (Gallery & Stack)
+    // 7. DRAG & DROP SORTING (Gallery)
     // ==========================================
     function initSortable() {
         if (typeof $.fn.sortable === 'undefined') {
-            console.warn('jQuery UI Sortable not loaded');
+            console.warn('jQuery UI Sortable not loaded - drag & drop disabled');
             return;
         }
 
@@ -273,8 +427,10 @@ jQuery(document).ready(function ($) {
 
                 $input.val(newIds.join(','));
 
-                console.log('New order saved: ' + newIds.join(','));
+                console.log('Gallery reordered: ' + newIds.length + ' photos');
                 formChanged = true;
+
+                showSuccessNotice('✅ Gallery order updated');
             }
         });
     }
@@ -290,16 +446,16 @@ jQuery(document).ready(function ($) {
         if (!$container.length) return;
 
         const order = [
-            'afc_intro',       // 1. Property Description (Headline)
-            'afc_description', // 2. Property Narrative
-            'afc_details',     // 3. Property Specifications
-            'afc_media_hub',   // 4. Visual Command Center
-            'afc_slider',      // 5. Gallery Slider
-            'afc_location_v2', // 6. Location & GPS
-            'afc_amenities',   // 7. Property Features
-            'afc_agent',       // 8. Agent Branding
-            'afc_intelligence',// 10. Intelligence & Files
-            'afc_publish_box'  // 11. Publish Control
+            'afc_intro',
+            'afc_description',
+            'afc_details',
+            'afc_media_hub',
+            'afc_slider',
+            'afc_location_v2',
+            'afc_amenities',
+            'afc_agent',
+            'afc_intelligence',
+            'afc_publish_box'
         ];
 
         order.forEach(function (id) {
@@ -318,18 +474,46 @@ jQuery(document).ready(function ($) {
     $(document).on('click', '#publish', function (e) {
         const $title = $('#title');
 
+        // Title validation
         if ($title.val().trim() === '') {
             e.preventDefault();
-            alert('⚠️ Please enter a property title before publishing.');
+            alert('⚠️ MISSING TITLE\n\nPlease enter a property title before publishing.\n\nThis field is required.');
             $title.focus();
             return false;
         }
 
-        // Check if hero image is set
+        // Hero image validation
         const heroId = $('input[name="_listing_hero_id"]').val();
 
         if (!heroId) {
-            const confirmed = confirm('⚠️ NO HERO IMAGE SET\n\nThis listing does not have a hero image. Publishing without one may result in poor presentation.\n\nDo you want to continue anyway?');
+            const confirmed = confirm(
+                '⚠️ NO HERO IMAGE SET\n\n' +
+                'This listing does not have a hero image.\n\n' +
+                'Publishing without a hero image will result in:\n' +
+                '• Poor visual presentation\n' +
+                '• Lower engagement rates\n' +
+                '• Unprofessional appearance\n\n' +
+                'Do you want to continue anyway?'
+            );
+
+            if (!confirmed) {
+                e.preventDefault();
+                return false;
+            }
+        }
+
+        // Gallery recommendation
+        const galleryIds = $('input[name="_listing_gallery_ids"]').val();
+        const photoCount = galleryIds ? galleryIds.split(',').filter(Boolean).length : 0;
+
+        if (photoCount < 5) {
+            const confirmed = confirm(
+                '⚠️ LOW PHOTO COUNT\n\n' +
+                'Current gallery: ' + photoCount + ' photos\n' +
+                'Recommended: At least 5-8 photos\n\n' +
+                'Luxury listings perform better with comprehensive photo galleries.\n\n' +
+                'Publish anyway?'
+            );
 
             if (!confirmed) {
                 e.preventDefault();
@@ -338,13 +522,75 @@ jQuery(document).ready(function ($) {
         }
 
         // Show loading state
-        $(this).prop('disabled', true).val('Publishing...').css('opacity', '0.7');
+        $(this).prop('disabled', true)
+            .val('Publishing...')
+            .css({
+                'opacity': '0.7',
+                'cursor': 'not-allowed'
+            });
     });
 
     // ==========================================
-    // 10. CONSOLE WELCOME MESSAGE
+    // 10. NOTIFICATION HELPERS
     // ==========================================
-    console.log('%c🚀 AFCGlide Admin v4.0.0 Loaded', 'color: #10b981; font-weight: bold; font-size: 14px;');
-    console.log('%cDrag to reorder | Click × to remove | Auto-save on publish', 'color: #64748b; font-size: 12px;');
+    function showSuccessNotice(message) {
+        // Remove any existing notices
+        $('.afc-temp-notice').remove();
+
+        const $notice = $('<div class="notice notice-success is-dismissible afc-temp-notice"><p>' + message + '</p></div>');
+        $('.wrap h1').after($notice);
+
+        setTimeout(function () {
+            $notice.fadeOut(400, function () { $(this).remove(); });
+        }, 3000);
+    }
+
+    function showUndoNotice(message, undoCallback) {
+        $('.afc-temp-notice').remove();
+
+        const $notice = $(
+            '<div class="notice notice-warning afc-temp-notice" style="display:flex; justify-content:space-between; align-items:center;">' +
+            '<p>' + message + '</p>' +
+            '<button type="button" class="button afc-undo-btn">Undo</button>' +
+            '</div>'
+        );
+
+        $('.wrap h1').after($notice);
+
+        $notice.find('.afc-undo-btn').on('click', function () {
+            undoCallback();
+            $notice.remove();
+        });
+
+        setTimeout(function () {
+            $notice.fadeOut(400, function () { $(this).remove(); });
+        }, 5000);
+    }
+
+    // ==========================================
+    // 11. KEYBOARD SHORTCUTS
+    // ==========================================
+    $(document).on('keydown', function (e) {
+        // Ctrl/Cmd + S to save
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            $('#publish').click();
+        }
+
+        // Ctrl/Cmd + Z to undo (if within 5 seconds)
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z' && lastRemovedImage) {
+            e.preventDefault();
+            undoRemoveImage();
+        }
+    });
+
+    // ==========================================
+    // 12. CONSOLE WELCOME MESSAGE
+    // ==========================================
+    console.log('%c🚀 AFCGlide Admin v4.1.0 Loaded', 'color: #10b981; font-weight: bold; font-size: 14px;');
+    console.log('%cKeyboard Shortcuts:', 'color: #64748b; font-size: 12px; font-weight: bold;');
+    console.log('%c  Ctrl/Cmd + S: Save/Publish', 'color: #64748b; font-size: 11px;');
+    console.log('%c  Ctrl/Cmd + Z: Undo last deletion', 'color: #64748b; font-size: 11px;');
+    console.log('%cFeatures: Drag to reorder | Click × to remove | Auto-save protection', 'color: #64748b; font-size: 11px;');
 
 });

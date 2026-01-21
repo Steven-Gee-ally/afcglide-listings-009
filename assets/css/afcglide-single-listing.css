@@ -1,7 +1,6 @@
 /**
- * AFCGlide Listings - Unified Luxury Backbone v7.0
- * Optimized for MacBook Pro | Integrated Lightbox | 4px Precise Seams
- * Glassmorphism "Lamp-light" Price Badge included.
+ * AFCGlide Listings - Unified Luxury Backbone v7.1
+ * 4-Photo Paginated Slider Edition
  */
 
 :root {
@@ -11,16 +10,15 @@
     --afc-gray: #64748b;
     --afc-border: #e2e8f0;
     --afc-radius: 16px;
-    /* Targeted rounding for photos */
     --afc-radius-lg: 24px;
-    /* Softer rounding for cards */
     --afc-seam: 4px;
-    /* Your precise 4px separation */
     --afc-glass: rgba(255, 255, 255, 0.75);
     --afc-shadow-lux: 0 20px 40px rgba(0, 0, 0, 0.05);
 }
 
-/* 1. LAYOUT ARCHITECTURE */
+/* ==========================================
+   1. LAYOUT ARCHITECTURE
+   ========================================== */
 .afcglide-wrapper {
     max-width: 1300px;
     margin: 40px auto;
@@ -34,46 +32,52 @@
     margin-top: 40px;
 }
 
-/* 2. THE PHOTO WALL (2.5fr / 1fr Layout) */
-.afcglide-photo-block {
-    display: grid;
-    grid-template-columns: 2.5fr 1fr;
-    gap: var(--afc-seam);
-    height: 700px;
-    margin: 20px 0;
-}
-
-.afcglide-left-column {
-    display: grid;
-    grid-template-rows: 2.5fr 1fr;
-    gap: var(--afc-seam);
-}
-
-/* THE MAGIC: INDIVIDUAL PHOTO ROUNDING */
-.afcglide-hero-main,
-.afc-horizontal-slider,
-.afcglide-stack-item {
-    position: relative;
+/* ==========================================
+   2. THE CINEMATIC STAGE
+   ========================================== */
+.afc-luxury-visual-stage {
+    margin-bottom: 40px;
+    background: #000;
+    border-radius: var(--afc-radius-lg);
     overflow: hidden;
-    border-radius: var(--afc-radius);
-    background: #eee;
-    cursor: zoom-in;
+    box-shadow: var(--afc-shadow-lux);
+    position: relative;
 }
 
-.afcglide-photo-block img {
+.afc-hero-main-display {
+    position: relative;
+    height: 600px;
+}
+
+.afc-main-image-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.afc-hero-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
-    transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.afcglide-photo-block div:hover img {
-    transform: scale(1.05);
+.afc-hero-placeholder {
+    width: 100%;
+    height: 100%;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* PRICE TAG (Glassmorphism Lamp-light) */
-.afcglide-price-badge {
+.afc-placeholder-icon {
+    font-size: 120px;
+    opacity: 0.3;
+}
+
+/* GLASSMORPHISM PRICE BADGE */
+.afc-price-badge-overlay {
     position: absolute;
     bottom: 25px;
     left: 25px;
@@ -82,15 +86,212 @@
     -webkit-backdrop-filter: blur(15px);
     padding: 15px 30px;
     border-radius: 12px;
-    font-size: 32px;
-    font-weight: 900;
-    color: var(--afc-dark);
     border: 1px solid rgba(255, 255, 255, 0.4);
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
     z-index: 10;
 }
 
-/* 3. SPECS BAR */
+.afc-price-amount {
+    font-size: 32px;
+    font-weight: 900;
+    color: var(--afc-dark);
+    letter-spacing: -1px;
+}
+
+.afc-photo-counter {
+    position: absolute;
+    bottom: 25px;
+    right: 25px;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 700;
+    backdrop-filter: blur(5px);
+    letter-spacing: 0.5px;
+}
+
+.afc-camera-icon {
+    margin-right: 6px;
+}
+
+/* ==========================================
+   3. THE 4-PHOTO GALLERY SLIDER
+   ========================================== */
+.afc-filmstrip-wrapper {
+    position: relative;
+    background: linear-gradient(to bottom, #f1f5f9, #f8fafc);
+    padding: 25px 70px;
+    border-top: var(--afc-seam) solid #e2e8f0;
+}
+
+.afc-filmstrip-container {
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.afc-filmstrip-inner {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.afc-strip-item {
+    aspect-ratio: 3/2;
+    cursor: pointer;
+    border-radius: 12px;
+    overflow: hidden;
+    opacity: 0.5;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 3px solid transparent;
+    position: relative;
+    background: #e2e8f0;
+}
+
+.afc-strip-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.afc-strip-item:hover {
+    opacity: 0.85;
+    transform: translateY(-4px);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.afc-strip-item.active {
+    opacity: 1;
+    border-color: var(--afc-primary);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
+    transform: scale(1.03);
+}
+
+.afc-strip-item.active::after {
+    content: '✓';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--afc-primary);
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* NAVIGATION ARROWS */
+.afc-strip-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--afc-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    z-index: 20;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.afc-strip-nav:hover {
+    background: var(--afc-primary);
+    color: white;
+    border-color: var(--afc-primary);
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+}
+
+.afc-strip-nav:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.afc-strip-nav.prev { left: 15px; }
+.afc-strip-nav.next { right: 15px; }
+
+.afc-strip-nav:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background: #f1f5f9;
+}
+
+.afc-strip-nav:disabled:hover {
+    background: #f1f5f9;
+    color: var(--afc-dark);
+    transform: translateY(-50%);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* PAGE INDICATORS */
+.afc-page-indicators {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    padding: 20px 0 10px;
+}
+
+.afc-page-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #cbd5e1;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.afc-page-dot:hover {
+    background: #94a3b8;
+}
+
+.afc-page-dot.active {
+    background: var(--afc-primary);
+    width: 24px;
+    border-radius: 4px;
+}
+
+/* ==========================================
+   4. CONTENT SECTIONS
+   ========================================== */
+.afc-main-content {
+    min-width: 0;
+}
+
+.afc-title-section {
+    margin-bottom: 30px;
+}
+
+.afc-property-title {
+    font-size: 42px;
+    font-weight: 900;
+    color: var(--afc-dark);
+    margin: 0 0 15px 0;
+    letter-spacing: -1px;
+    line-height: 1.1;
+}
+
+.afc-property-address {
+    font-size: 18px;
+    color: var(--afc-gray);
+    font-weight: 600;
+    margin: 0;
+}
+
+/* SPECS BAR */
 .afcglide-specs-bar {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -98,7 +299,7 @@
     border: 1px solid var(--afc-border);
     border-radius: var(--afc-radius-lg);
     padding: 30px;
-    margin-bottom: 50px;
+    margin-bottom: 40px;
     box-shadow: var(--afc-shadow-lux);
     text-align: center;
 }
@@ -117,22 +318,48 @@
     letter-spacing: 1.5px;
     color: var(--afc-gray);
     font-weight: 700;
+    display: block;
+    margin-bottom: 8px;
 }
 
 .afcglide-spec-item strong {
     font-size: 26px;
     color: var(--afc-dark);
     display: block;
-    margin-top: 5px;
+    font-weight: 900;
 }
 
-/* 4. THE 20 AMENITIES GRID */
-.afc-amenities-section {
-    margin-top: 60px;
-    padding: 40px;
+/* DESCRIPTION */
+.afc-description-section {
     background: #fff;
-    border-radius: var(--afc-radius-lg);
     border: 1px solid var(--afc-border);
+    border-radius: var(--afc-radius-lg);
+    padding: 40px;
+    margin-bottom: 40px;
+}
+
+.afc-section-heading {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--afc-dark);
+    margin: 0 0 20px 0;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--afc-border);
+}
+
+.afc-description-content {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #475569;
+}
+
+/* AMENITIES */
+.afc-amenities-section {
+    background: #fff;
+    border: 1px solid var(--afc-border);
+    border-radius: var(--afc-radius-lg);
+    padding: 40px;
+    margin-bottom: 40px;
 }
 
 .afc-amenities-grid {
@@ -147,42 +374,42 @@
     gap: 12px;
     font-size: 15px;
     color: var(--afc-dark);
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .afc-icon-check {
-    width: 22px;
-    height: 22px;
+    width: 28px;
+    height: 28px;
     background: var(--afc-brand-soft);
     color: var(--afc-primary);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 16px;
+    flex-shrink: 0;
 }
 
-/* 5. AGENT BOUTIQUE CARD (Sidebar) */
-.afcglide-agent-card {
-    background: #fff;
-    border: 1px solid var(--afc-border);
-    padding: 40px;
-    border-radius: var(--afc-radius-lg);
-    box-shadow: var(--afc-shadow-lux);
+/* ==========================================
+   5. AGENT SIDEBAR
+   ========================================== */
+.afc-sidebar-modern {
     position: sticky;
     top: 40px;
+}
+
+.afcglide-agent-card {
+    background: #ffffff;
+    border: 1px solid var(--afc-border);
+    padding: 35px;
+    border-radius: var(--afc-radius-lg);
+    box-shadow: var(--afc-shadow-lux);
     text-align: center;
 }
 
-.afc-agency-logo {
-    max-width: 140px;
-    margin: 0 auto 25px;
-    display: block;
-}
-
 .afc-agent-photo-wrap {
-    width: 120px;
-    height: 120px;
+    width: 130px;
+    height: 130px;
     margin: 0 auto 20px;
     position: relative;
 }
@@ -192,36 +419,59 @@
     height: 100%;
     object-fit: cover;
     border-radius: 50%;
-    border: 4px solid #fff;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 5px solid #fff;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 
 .afc-agent-name {
-    font-size: 22px;
-    font-weight: 800;
+    font-size: 24px;
+    font-weight: 900;
     color: var(--afc-dark);
-    margin-bottom: 5px;
+    margin: 0 0 5px 0;
+    letter-spacing: -0.5px;
 }
 
-/* 6. BUTTONS */
-.afc-btn-primary {
-    background: var(--afc-primary);
-    color: #fff;
-    padding: 16px;
-    border-radius: 8px;
-    display: block;
-    text-decoration: none;
+.afc-agent-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    color: var(--afc-gray);
+    letter-spacing: 1px;
     font-weight: 700;
-    margin-bottom: 12px;
+    margin: 0 0 25px 0;
+}
+
+.afc-agent-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.afc-btn-primary {
+    padding: 18px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 14px;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--afc-dark);
+    color: #fff;
 }
 
 .afc-btn-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 24px var(--afc-brand-soft);
+    transform: translateY(-4px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    color: #fff;
 }
 
-/* WhatsApp Float */
+/* ==========================================
+   6. FLOATING WHATSAPP
+   ========================================== */
 .afc-whatsapp-float {
     position: fixed;
     bottom: 30px;
@@ -231,29 +481,26 @@
     background-color: #25d366;
     color: #fff;
     border-radius: 50px;
-    text-align: center;
-    font-size: 30px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;
-    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    z-index: 9999;
     transition: all 0.3s ease;
+    animation: afc-pulse 2s infinite;
 }
 
 .afc-whatsapp-float:hover {
     transform: scale(1.1);
-    background-color: #128c7e;
     color: white;
 }
 
 .afc-wa-icon {
     width: 32px;
     height: 32px;
+    fill: currentColor;
 }
 
-/* Tooltip on Hover */
 .afc-wa-tooltip {
     position: absolute;
     right: 75px;
@@ -274,12 +521,72 @@
     visibility: visible;
 }
 
-/* Pulse Animation for attention */
 @keyframes afc-pulse {
     0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
     70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
     100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
 }
-.afc-whatsapp-float {
-    animation: afc-pulse 2s infinite;
+
+/* ==========================================
+   7. RESPONSIVE
+   ========================================== */
+@media (max-width: 1024px) {
+    .afc-listing-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .afc-sidebar-modern {
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+    .afcglide-wrapper {
+        padding: 0 15px;
+    }
+    
+    .afc-hero-main-display {
+        height: 400px;
+    }
+    
+    .afc-filmstrip-wrapper {
+        padding: 20px 50px;
+    }
+    
+    .afc-filmstrip-inner {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .afc-strip-nav {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+    
+    .afc-strip-nav.prev { left: 8px; }
+    .afc-strip-nav.next { right: 8px; }
+    
+    .afcglide-specs-bar {
+        grid-template-columns: 1fr;
+    }
+    
+    .afcglide-spec-item {
+        border-right: none;
+        border-bottom: 1px solid var(--afc-border);
+        padding-bottom: 20px;
+    }
+    
+    .afcglide-spec-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    
+    .afc-amenities-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .afc-property-title {
+        font-size: 28px;
+    }
 }
