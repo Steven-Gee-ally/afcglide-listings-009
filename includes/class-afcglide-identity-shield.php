@@ -3,6 +3,8 @@ namespace AFCGlide\Admin;
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+use AFCGlide\Core\Constants as C;
+
 /**
  * AFCGlide Identity Shield v5.0
  * World-Class Security Hardening
@@ -95,8 +97,13 @@ class AFCGlide_Identity_Shield {
         global $post;
         $is_submission_page = ( is_a( $post, 'WP_Post' ) && has_shortcode( $post->post_content, 'afcglide_submission_form' ) );
         
-        // Also block the "Add New" page if someone tries to brute force the URL
-        $is_admin_submission = is_admin() && isset($_GET['post_type']) && $_GET['post_type'] === 'afcglide_listing';
+        // Also block the "Add New" and "Edit" pages
+        global $pagenow;
+        $is_admin_submission = is_admin() && (
+            (isset($_GET['post_type']) && $_GET['post_type'] === C::POST_TYPE) ||
+            ($pagenow === 'post.php' && isset($_GET['post']) && get_post_type($_GET['post']) === C::POST_TYPE) ||
+            ($pagenow === 'post-new.php' && isset($_GET['post_type']) && $_GET['post_type'] === C::POST_TYPE)
+        );
 
         if ( $is_submission_page || $is_admin_submission ) {
             wp_die( '<h1>🚫 SYSTEM LOCKDOWN ACTIVE</h1><p>The Global Infrastructure is currently in lockdown mode. All submissions are paused.</p>', 'System Lockdown', [ 'response' => 403 ] );

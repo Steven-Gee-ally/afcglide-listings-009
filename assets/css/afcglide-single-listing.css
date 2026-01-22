@@ -98,11 +98,32 @@
     letter-spacing: -1px;
 }
 
+/* ELITE ASSET WATERMARK */
+.afc-main-image-container::after {
+    content: "AFC GLIDE LUXURY";
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    font-family: inherit;
+    font-weight: 900;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    pointer-events: none;
+    z-index: 5;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 8px 15px;
+    border-radius: 4px;
+    backdrop-filter: blur(2px);
+}
+
 .afc-photo-counter {
     position: absolute;
     bottom: 25px;
     right: 25px;
-    background: rgba(0,0,0,0.6);
+    background: rgba(0, 0, 0, 0.6);
     color: #fff;
     padding: 10px 16px;
     border-radius: 50px;
@@ -221,8 +242,13 @@
     transform: translateY(-50%) scale(0.95);
 }
 
-.afc-strip-nav.prev { left: 15px; }
-.afc-strip-nav.next { right: 15px; }
+.afc-strip-nav.prev {
+    left: 15px;
+}
+
+.afc-strip-nav.next {
+    right: 15px;
+}
 
 .afc-strip-nav:disabled {
     opacity: 0.3;
@@ -282,6 +308,17 @@
     margin: 0 0 15px 0;
     letter-spacing: -1px;
     line-height: 1.1;
+}
+
+.afc-property-subtitle {
+    font-size: 20px;
+    color: var(--afc-primary);
+    font-weight: 800;
+    margin-top: -10px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block;
 }
 
 .afc-property-address {
@@ -484,7 +521,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     z-index: 9999;
     transition: all 0.3s ease;
     animation: afc-pulse 2s infinite;
@@ -522,9 +559,17 @@
 }
 
 @keyframes afc-pulse {
-    0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
-    70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+    0% {
+        box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 15px rgba(37, 211, 102, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+    }
 }
 
 /* ==========================================
@@ -534,7 +579,7 @@
     .afc-listing-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .afc-sidebar-modern {
         position: static;
     }
@@ -544,48 +589,53 @@
     .afcglide-wrapper {
         padding: 0 15px;
     }
-    
+
     .afc-hero-main-display {
         height: 400px;
     }
-    
+
     .afc-filmstrip-wrapper {
         padding: 20px 50px;
     }
-    
+
     .afc-filmstrip-inner {
         grid-template-columns: repeat(2, 1fr);
         gap: 12px;
     }
-    
+
     .afc-strip-nav {
         width: 40px;
         height: 40px;
         font-size: 16px;
     }
-    
-    .afc-strip-nav.prev { left: 8px; }
-    .afc-strip-nav.next { right: 8px; }
-    
+
+    .afc-strip-nav.prev {
+        left: 8px;
+    }
+
+    .afc-strip-nav.next {
+        right: 8px;
+    }
+
     .afcglide-specs-bar {
         grid-template-columns: 1fr;
     }
-    
+
     .afcglide-spec-item {
         border-right: none;
         border-bottom: 1px solid var(--afc-border);
         padding-bottom: 20px;
     }
-    
+
     .afcglide-spec-item:last-child {
         border-bottom: none;
         padding-bottom: 0;
     }
-    
+
     .afc-amenities-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .afc-property-title {
         font-size: 28px;
     }

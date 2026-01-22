@@ -15,50 +15,52 @@ class AFCGlide_Scoreboard {
      * Fetch real-time data for the current agent or global
      */
     public static function get_stats( $user_id = null ) {
+        global $wpdb;
+        
         $stats = [
-            'active_count'  => 0,
-            'active_value'  => 0,
-            'pending_count' => 0,
-            'pending_value' => 0,
-            'sold_count'    => 0,
-            'sold_value'    => 0,
-            'total_hits'    => 0
+            'active_count' => 0, 'active_value' => 0,
+            'pending_count' => 0, 'pending_value' => 0,
+            'sold_count' => 0, 'sold_value' => 0,
+            'total_hits' => 0
         ];
 
-        $args = [
-            'post_type'      => C::POST_TYPE,
-            'posts_per_page' => -1,
-            'post_status'    => ['publish', 'pending', 'sold']
-        ];
+        $post_type = C::POST_TYPE;
+        $author_query = $user_id ? $wpdb->prepare(" AND post_author = %d", $user_id) : "";
 
-        if ( $user_id ) {
-            $args['author'] = $user_id;
-        }
+        // OPTIMIZED SQL: One pass for counts, values, and views
+        // We join posts with postmeta twice for price and views
+        $results = $wpdb->get_results("
+            SELECT 
+                post_status, 
+                COUNT(*) as count, 
+                SUM(CAST(pm_price.meta_value AS DECIMAL(20,2))) as total_value,
+                SUM(CAST(pm_views.meta_value AS UNSIGNED)) as total_views
+            FROM {$wpdb->posts} p
+            LEFT JOIN {$wpdb->postmeta} pm_price ON p.ID = pm_price.post_id AND pm_price.meta_key = '" . C::META_PRICE . "'
+            LEFT JOIN {$wpdb->postmeta} pm_views ON p.ID = pm_views.post_id AND pm_views.meta_key = '" . C::META_VIEWS . "'
+            WHERE post_type = '{$post_type}' 
+            AND post_status IN ('publish', 'pending', 'sold')
+            {$author_query}
+            GROUP BY post_status
+        ", ARRAY_A);
 
-        $query = new \WP_Query( $args );
+        foreach ( $results as $row ) {
+            $status = $row['post_status'];
+            $count = intval($row['count']);
+            $val = floatval($row['total_value']);
+            $views = intval($row['total_views']);
 
-        if ( $query->have_posts() ) {
-            while ( $query->have_posts() ) {
-                $query->the_post();
-                $id = get_the_ID();
-                $status = get_post_status( $id );
-                $price  = floatval( get_post_meta( $id, C::META_PRICE, true ) );
-                $views  = intval( get_post_meta( $id, C::META_VIEWS, true ) );
-
-                if ( $status === 'publish' ) {
-                    $stats['active_count']++;
-                    $stats['active_value'] += $price;
-                } elseif ( $status === 'pending' ) {
-                    $stats['pending_count']++;
-                    $stats['pending_value'] += $price;
-                } elseif ( $status === 'sold' ) {
-                    $stats['sold_count']++;
-                    $stats['sold_value'] += $price;
-                }
-
-                $stats['total_hits'] += $views;
+            if ( $status === 'publish' ) {
+                $stats['active_count'] = $count;
+                $stats['active_value'] = $val;
+            } elseif ( $status === 'pending' ) {
+                $stats['pending_count'] = $count;
+                $stats['pending_value'] = $val;
+            } elseif ( $status === 'sold' ) {
+                $stats['sold_count'] = $count;
+                $stats['sold_value'] = $val;
             }
-            wp_reset_postdata();
+            $stats['total_hits'] += $views;
         }
 
         return $stats;

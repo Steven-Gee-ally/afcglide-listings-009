@@ -21,18 +21,23 @@ final class Constants {
     /**
      * Meta Keys - Listing Data
      */
-    const META_INTRO       = '_listing_intro_text';
-    const META_NARRATIVE   = '_listing_narrative';
-    const META_PRICE       = '_listing_price';
-    const META_BEDS        = '_listing_beds';
-    const META_BATHS       = '_listing_baths';
-    const META_SQFT        = '_listing_sqft';
-    const META_ADDRESS     = '_listing_address';
-    const META_STATUS      = '_listing_status';
-    const META_AMENITIES   = '_listing_amenities';
-    const META_VIEWS       = '_listing_views_count';
-    const META_PDF_ID      = '_listing_pdf_id';
-    const META_OPEN_HOUSE  = '_listing_showing_schedule';
+    const META_INTRO          = '_listing_intro_text';
+    const META_INTRO_ES       = '_listing_intro_text_es';
+    const META_NARRATIVE      = '_listing_narrative';
+    const META_NARRATIVE_ES   = '_listing_narrative_es';
+    const META_PRICE          = '_listing_price';
+    const META_BEDS           = '_listing_beds';
+    const META_BATHS          = '_listing_baths';
+    const META_SQFT           = '_listing_sqft';
+    const META_ADDRESS        = '_listing_address';
+    const META_STATUS         = '_listing_status';
+    const META_AMENITIES      = '_listing_amenities';
+    const META_VIEWS          = '_listing_views_count';
+    const META_PDF_ID         = '_listing_pdf_id';
+    const META_OPEN_HOUSE     = '_listing_showing_schedule';
+    const META_LEADS          = '_afc_leads';
+    const META_AUDIT_LOG      = '_afc_enterprise_audit_log';
+    const META_SOLD_LOG       = '_afc_sold_logged';
     
     /**
      * Meta Keys - Location

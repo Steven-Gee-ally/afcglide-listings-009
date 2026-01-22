@@ -14,6 +14,7 @@ class AFCGlide_User_Profile {
         add_action( 'edit_user_profile', [ __CLASS__, 'add_agent_fields' ] );
         add_action( 'personal_options_update', [ __CLASS__, 'save_agent_fields' ] );
         add_action( 'edit_user_profile_update', [ __CLASS__, 'save_agent_fields' ] );
+        add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_profile_scripts' ] );
         
         // Add lockdown notice
         add_action( 'admin_notices', [ __CLASS__, 'show_identity_shield_notice' ] );
@@ -43,6 +44,17 @@ class AFCGlide_User_Profile {
             </div>
             <?php
         }
+    }
+
+    /**
+     * Enqueue media and scripts for the profile page
+     */
+    public static function enqueue_profile_scripts( $hook ) {
+        if ( ! in_array( $hook, ['profile.php', 'user-edit.php'] ) ) {
+            return;
+        }
+        wp_enqueue_media();
+        wp_enqueue_script( 'afcglide-admin-js', AFCG_URL . 'assets/js/afcglide-admin.js', ['jquery'], '1.2', true );
     }
 
     /**
@@ -124,6 +136,8 @@ class AFCGlide_User_Profile {
         
         // Get existing values
         $phone = get_user_meta( $user->ID, 'agent_phone', true );
+        $photo = get_user_meta( $user->ID, 'agent_photo', true ); // Added
+        $photo_url = $photo ? wp_get_attachment_image_url( $photo, 'thumbnail' ) : '';
         $license = get_user_meta( $user->ID, 'agent_license', true );
         $bio = get_user_meta( $user->ID, 'agent_bio', true );
         $office = get_user_meta( $user->ID, 'agent_office', true );
@@ -141,6 +155,22 @@ class AFCGlide_User_Profile {
             
             <table class="form-table">
                 <tbody>
+                    <tr>
+                        <th><label for="agent_photo">Profile Photo</label></th>
+                        <td>
+                            <div class="afc-agent-photo-preview" style="margin-bottom: 15px;">
+                                <?php if ($photo_url) : ?>
+                                    <img src="<?php echo esc_url($photo_url); ?>" id="afc-user-photo-img" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                                <?php else : ?>
+                                    <div id="afc-user-photo-placeholder" style="width: 100px; height: 100px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 40px;">👤</div>
+                                <?php endif; ?>
+                            </div>
+                            <input type="hidden" name="agent_photo" id="agent_photo" value="<?php echo esc_attr($photo); ?>">
+                            <button type="button" class="button afcglide-upload-profile-photo" <?php echo $disabled; ?>>Upload Headshot</button>
+                            <p class="description">Upload a professional headshot for your listings.</p>
+                        </td>
+                    </tr>
+
                     <tr>
                         <th><label for="agent_phone">Contact Phone</label></th>
                         <td>
@@ -274,6 +304,7 @@ class AFCGlide_User_Profile {
         // Save all agent fields if not locked
         $fields = [
             'agent_phone',
+            'agent_photo', // Added
             'agent_license',
             'agent_office',
             'agent_specialties',

@@ -1,0 +1,42 @@
+# ==========================================
+# AFCGlide Enterprise .gitignore
+# ==========================================
+
+# macOS System Files (The "Ghost" files)
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Workspace & IDE (Keep your personal editor settings out)
+.vscode/
+.idea/
+*.swp
+*.swo
+.project
+.settings/
+.buildpath
+
+# Dependencies (If applicable in the future)
+node_modules/
+vendor/
+dist/
+build/
+
+# Logs & Temp Files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.tmp/
+
+# WordPress Backups & Cache
+*.bak
+*.sql
+*.zip
+*.gz
+sitemap.xml
+sitemap.xml.gz

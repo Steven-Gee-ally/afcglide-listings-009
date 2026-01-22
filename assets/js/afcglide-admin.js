@@ -43,13 +43,16 @@ jQuery(document).ready(function ($) {
     });
 
     // ==========================================
-    // 2. AGENT PHOTO UPLOAD (Single Select)
+    // 2. AGENT PHOTO UPLOAD (Listing & Profile)
     // ==========================================
-    $(document).on('click', '.afcglide-upload-image-btn', function (e) {
+    $(document).on('click', '.afcglide-upload-image-btn, .afcglide-upload-profile-photo', function (e) {
         e.preventDefault();
 
+        const $btn = $(this);
+        const isProfile = $btn.hasClass('afcglide-upload-profile-photo');
+
         const frame = wp.media({
-            title: 'Select Professional Agent Photo',
+            title: isProfile ? 'Select Professional Headshot' : 'Select Professional Agent Photo',
             multiple: false,
             library: { type: 'image' }
         });
@@ -57,28 +60,29 @@ jQuery(document).ready(function ($) {
         frame.on('select', function () {
             const attachment = frame.state().get('selection').first().toJSON();
 
-            // Enhanced validation with better messaging
+            // Enhanced validation
             if (attachment.width < MIN_AGENT_WIDTH) {
                 alert(
                     '⚠️ IMAGE TOO SMALL\n\n' +
-                    'Agent photos require ' + MIN_AGENT_WIDTH + 'px width minimum for professional quality.\n\n' +
-                    'Selected image: ' + attachment.width + 'px × ' + attachment.height + 'px\n\n' +
-                    'Please choose a higher resolution image.'
+                    'Professional photos require ' + MIN_AGENT_WIDTH + 'px width minimum.\n\n' +
+                    'Selected image: ' + attachment.width + 'px × ' + attachment.height + 'px'
                 );
                 return;
             }
 
-            // Update preview and hidden field
-            $('#agent_photo_id').val(attachment.id);
-            $('#agent-photo-img').attr('src', attachment.url);
+            // Update respective fields
+            if (isProfile) {
+                $('#agent_photo').val(attachment.id);
+                $('#afc-user-photo-img').attr('src', attachment.url);
+                $('#afc-user-photo-placeholder').hide();
+                $('#afc-user-photo-img').show();
+            } else {
+                $('#agent_photo_id').val(attachment.id);
+                $('#agent-photo-img').attr('src', attachment.url);
+            }
 
             formChanged = true;
-            showSuccessNotice('✅ Agent photo updated successfully');
-        });
-
-        frame.on('close', function () {
-            // Optional: Track if user canceled
-            console.log('Agent photo selector closed');
+            showSuccessNotice('✅ Photo updated successfully');
         });
 
         frame.open();

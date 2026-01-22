@@ -18,7 +18,7 @@ jQuery(document).ready(function ($) {
         if (file) {
             // Check file type first
             if (!file.type.match('image.*')) {
-                alert('🚫 INVALID FILE: Please upload a JPG or PNG.');
+                alert(afc_vars.strings.invalid || '🚫 INVALID FILE: Please upload a JPG or PNG.');
                 return;
             }
 
@@ -28,7 +28,7 @@ jQuery(document).ready(function ($) {
                 img.onload = function () {
                     // World-Class Standard: 1200px width minimum
                     if (this.width < 1200) {
-                        alert('⚠️ QUALITY REJECTED: Luxury listings require 1200px width minimum.\nCurrently detected: ' + this.width + 'px');
+                        alert((afc_vars.strings.too_small || '⚠️ QUALITY REJECTED') + '\nCurrently detected: ' + this.width + 'px');
                         e.target.value = '';
                         $previewBox.html('<p style="color:#ef4444; font-size:12px;">Image too small.</p>');
                         return;
@@ -84,8 +84,8 @@ jQuery(document).ready(function ($) {
         e.preventDefault();
 
         // UI Lockdown: Prevent double-click ghost listings
-        $submitBtn.prop('disabled', true).css('opacity', '0.6').text('🚀 SYNCING ASSET...');
-        $feedback.fadeIn().html('<p style="color: #6366f1;">Initializing secure handshake with server...</p>');
+        $submitBtn.prop('disabled', true).css('opacity', '0.6').text(afc_vars.strings.loading || '🚀 SYNCING ASSET...');
+        $feedback.fadeIn().html('<p style="color: #6366f1;">' + (afc_vars.strings.handshake || 'Initializing...') + '</p>');
 
         const formData = new FormData(this);
 
@@ -101,20 +101,20 @@ jQuery(document).ready(function ($) {
             processData: false,
             success: function (response) {
                 if (response.success) {
-                    $submitBtn.css({ 'background': '#10b981', 'opacity': '1' }).text('✨ ASSET DEPLOYED');
-                    $feedback.html('<p style="color: #10b981;">Listing Verified. Redirecting...</p>');
+                    $submitBtn.css({ 'background': '#10b981', 'opacity': '1' }).text(afc_vars.strings.success || '✨ ASSET DEPLOYED');
+                    $feedback.html('<p style="color: #10b981;">' + (afc_vars.strings.verifying || 'Listing Verified. Redirecting...') + '</p>');
 
                     setTimeout(() => {
                         window.location.href = response.data.url;
                     }, 1200);
                 } else {
-                    $feedback.html('<p style="color: #ef4444;">❌ ERROR: ' + response.data.message + '</p>');
+                    $feedback.html('<p style="color: #ef4444;">' + (afc_vars.strings.error || '❌ ERROR:') + ' ' + response.data.message + '</p>');
                     $submitBtn.prop('disabled', false).css('opacity', '1').text('PUBLISH GLOBAL LISTING');
                 }
             },
             error: function () {
                 $feedback.html('<p style="color: #ef4444;">⚠️ Critical Connection Failure. Check file sizes.</p>');
-                $submitBtn.prop('disabled', false).css('opacity', '1').text('RETRY SUBMISSION');
+                $submitBtn.prop('disabled', false).css('opacity', '1').text(afc_vars.strings.retry || 'RETRY SUBMISSION');
             }
         });
     });

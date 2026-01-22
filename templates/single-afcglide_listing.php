@@ -10,25 +10,37 @@ get_header();
 
 // DATA HARVESTING
 $post_id  = get_the_ID();
-$price    = get_post_meta($post_id, '_listing_price', true);
-$address  = get_post_meta($post_id, '_listing_address', true);
-$hero_id  = get_post_meta($post_id, '_listing_hero_id', true);
+$price    = \AFCGlide\Core\Constants::get_meta($post_id, \AFCGlide\Core\Constants::META_PRICE);
+$address  = \AFCGlide\Core\Constants::get_meta($post_id, \AFCGlide\Core\Constants::META_ADDRESS);
+$hero_id  = \AFCGlide\Core\Constants::get_meta($post_id, \AFCGlide\Core\Constants::META_HERO_ID);
 $wa_brand_color = get_option('afc_whatsapp_color', '#25D366');
 
-$beds     = get_post_meta($post_id, '_listing_beds', true); 
-$baths    = get_post_meta($post_id, '_listing_baths', true); 
-$sqft     = get_post_meta($post_id, '_listing_sqft', true);
+$beds     = \AFCGlide\Core\Constants::get_meta($post_id, \AFCGlide\Core\Constants::META_BEDS); 
+$baths    = \AFCGlide\Core\Constants::get_meta($post_id, \AFCGlide\Core\Constants::META_BATHS); 
+$sqft     = \AFCGlide\Core\Constants::get_meta($post_id, \AFCGlide\Core\Constants::META_SQFT);
+$intro    = \AFCGlide\Core\Constants::get_meta($post_id, \AFCGlide\Core\Constants::META_INTRO);
+$narrative = \AFCGlide\Core\Constants::get_meta($post_id, \AFCGlide\Core\Constants::META_NARRATIVE);
+
+// ENTERPRISE BILINGUAL HARVEST (Costa Rica Sync)
+$current_lang = afcglide_get_current_lang();
+if ( $current_lang === 'es' ) {
+    $intro_es = \AFCGlide\Core\Constants::get_meta( $post_id, \AFCGlide\Core\Constants::META_INTRO_ES );
+    $narrative_es = \AFCGlide\Core\Constants::get_meta( $post_id, \AFCGlide\Core\Constants::META_NARRATIVE_ES );
+    
+    if ( ! empty($intro_es) ) $intro = $intro_es;
+    if ( ! empty($narrative_es) ) $narrative = $narrative_es;
+}
 
 // GALLERY
-$gallery  = get_post_meta($post_id, '_listing_gallery_ids', true) ?: [];
+$gallery  = \AFCGlide\Core\Constants::get_meta($post_id, \AFCGlide\Core\Constants::META_GALLERY_IDS) ?: [];
 
 // AMENITIES
-$amenities = get_post_meta($post_id, '_listing_amenities', true);
+$amenities = \AFCGlide\Core\Constants::get_meta($post_id, \AFCGlide\Core\Constants::META_AMENITIES);
 
 // AGENT DATA
-$a_name   = get_post_meta($post_id, '_agent_name_display', true);
-$a_phone  = get_post_meta($post_id, '_agent_phone_display', true);
-$a_photo  = get_post_meta($post_id, '_agent_photo_id', true);
+$a_name   = \AFCGlide\Core\Constants::get_meta($post_id, \AFCGlide\Core\Constants::META_AGENT_NAME);
+$a_phone  = \AFCGlide\Core\Constants::get_meta($post_id, \AFCGlide\Core\Constants::META_AGENT_PHONE);
+$a_photo  = \AFCGlide\Core\Constants::get_meta($post_id, \AFCGlide\Core\Constants::META_AGENT_PHOTO);
 $a_img    = $a_photo ? wp_get_attachment_url($a_photo) : AFCG_URL . 'assets/images/placeholder-agent.png';
 
 // CLEAN PHONE
@@ -41,73 +53,7 @@ $total_photos = 1 + count($gallery);
 <div class="afcglide-wrapper">
     
     <!-- VISUAL STAGE -->
-    <section class="afc-luxury-visual-stage">
-        
-        <!-- MAIN HERO VIEW -->
-        <div class="afc-hero-main-display">
-            <div class="afc-main-image-container">
-                <?php if($hero_id): 
-                    echo wp_get_attachment_image($hero_id, 'full', false, [
-                        'class' => 'afc-hero-image', 
-                        'id' => 'main-view',
-                        'alt' => get_the_title()
-                    ]); 
-                else: ?>
-                    <div class="afc-hero-placeholder">
-                        <span class="afc-placeholder-icon">🏙️</span>
-                    </div>
-                <?php endif; ?>
-                
-                <!-- GLASSMORPHISM PRICE BADGE -->
-                <div class="afc-price-badge-overlay">
-                    <span class="afc-price-amount">
-                        <?php echo $price ? '$' . number_format($price) : 'Contact for Price'; ?>
-                    </span>
-                </div>
-
-                <!-- PHOTO COUNTER -->
-                <div class="afc-photo-counter">
-                    <span class="afc-camera-icon">📷</span> 
-                    <span id="photo-index">1</span> / <?php echo $total_photos; ?>
-                </div>
-            </div>
-        </div>
-
-        <!-- FILMSTRIP GALLERY (4 at a time) -->
-        <?php if ( ! empty( $gallery ) ) : ?>
-        <div class="afc-filmstrip-wrapper">
-            <button class="afc-strip-nav prev" id="prevBtn" onclick="afcScrollGallery(-1)">❮</button>
-            
-            <div class="afc-filmstrip-container">
-                <div class="afc-filmstrip-inner" id="afcFilmstrip">
-                    
-                    <!-- HERO THUMBNAIL (First Photo) -->
-                    <div class="afc-strip-item active" 
-                         onclick="afcUpdateMainView(this, '<?php echo wp_get_attachment_image_url($hero_id, 'full'); ?>', 1)">
-                        <?php echo wp_get_attachment_image($hero_id, 'medium', false, ['alt' => get_the_title()]); ?>
-                    </div>
-
-                    <!-- GALLERY THUMBNAILS -->
-                    <?php foreach($gallery as $index => $id): 
-                        $full_url = wp_get_attachment_image_url($id, 'full');
-                    ?>
-                        <div class="afc-strip-item" 
-                             onclick="afcUpdateMainView(this, '<?php echo esc_url($full_url); ?>', <?php echo $index + 2; ?>)">
-                            <?php echo wp_get_attachment_image($id, 'medium', false, ['alt' => get_the_title()]); ?>
-                        </div>
-                    <?php endforeach; ?>
-                    
-                </div>
-            </div>
-
-            <button class="afc-strip-nav next" id="nextBtn" onclick="afcScrollGallery(1)">❯</button>
-        </div>
-
-        <!-- PAGE INDICATORS -->
-        <div class="afc-page-indicators" id="pageIndicators"></div>
-        <?php endif; ?>
-
-    </section>
+    <?php include AFCG_PATH . 'templates/parts/listing-visuals.php'; ?>
 
     <!-- CONTENT GRID -->
     <div class="afc-listing-grid">
@@ -118,88 +64,36 @@ $total_photos = 1 + count($gallery);
             <!-- TITLE & ADDRESS -->
             <div class="afc-title-section">
                 <h1 class="afc-property-title"><?php the_title(); ?></h1>
+                <?php if ($intro) : ?>
+                    <span class="afc-property-subtitle"><?php echo esc_html($intro); ?></span>
+                <?php endif; ?>
                 <p class="afc-property-address">📍 <?php echo esc_html($address); ?></p>
             </div>
 
             <!-- SPECS BAR -->
-            <div class="afcglide-specs-bar">
-                <div class="afcglide-spec-item">
-                    <label>Bedrooms</label>
-                    <strong><?php echo esc_html($beds ?: '—'); ?></strong>
-                </div>
-                <div class="afcglide-spec-item">
-                    <label>Bathrooms</label>
-                    <strong><?php echo esc_html($baths ?: '—'); ?></strong>
-                </div>
-                <div class="afcglide-spec-item">
-                    <label>Square Feet</label>
-                    <strong><?php echo $sqft ? number_format($sqft) : '—'; ?></strong>
-                </div>
-            </div>
+            <?php include AFCG_PATH . 'templates/parts/listing-specs.php'; ?>
 
-            <!-- DESCRIPTION -->
-            <div class="afc-description-section">
-                <h2 class="afc-section-heading">Property Narrative</h2>
-                <div class="afc-description-content">
-                    <?php the_content(); ?>
-                </div>
-            </div>
-
-            <!-- AMENITIES -->
-            <?php if ( ! empty( $amenities ) && is_array( $amenities ) ) : ?>
-            <div class="afc-amenities-section">
-                <h2 class="afc-section-heading">Premium Amenities</h2>
-                <div class="afc-amenities-grid">
-                    <?php 
-                    $amenity_icons = [
-                        'Gourmet Kitchen' => '🍳', 'Infinity Pool' => '🌊', 'Ocean View' => '🌅', 
-                        'Wine Cellar' => '🍷', 'Private Gym' => '🏋️', 'Smart Home Tech' => '📱', 
-                        'Outdoor Cinema' => '🎬', 'Helipad Access' => '🚁', 'Gated Community' => '🏰', 
-                        'Guest House' => '🏠', 'Solar Power' => '☀️', 'Beach Front' => '🏖️',
-                        'Spa / Sauna' => '🧖', '3+ Car Garage' => '🚗', 'Luxury Fire Pit' => '🔥', 
-                        'Concierge Service' => '🛎️', 'Walk-in Closet' => '👗', 'High Ceilings' => '⤴️', 
-                        'Staff Quarters' => '👨‍💼', 'Backup Generator' => '⚡'
-                    ];
-                    
-                    foreach ( $amenities as $amenity ) : 
-                        $icon = isset($amenity_icons[$amenity]) ? $amenity_icons[$amenity] : '💎';
-                    ?>
-                        <div class="afc-amenity-pill">
-                            <span class="afc-icon-check"><?php echo $icon; ?></span>
-                            <?php echo esc_html( $amenity ); ?>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-            <?php endif; ?>
+            <!-- DESCRIPTION & AMENITIES -->
+            <?php 
+            $amenity_icons = [
+                'Gourmet Kitchen' => '🍳', 'Infinity Pool' => '🌊', 'Ocean View' => '🌅', 
+                'Wine Cellar' => '🍷', 'Private Gym' => '🏋️', 'Smart Home Tech' => '📱', 
+                'Outdoor Cinema' => '🎬', 'Helipad Access' => '🚁', 'Gated Community' => '🏰', 
+                'Guest House' => '🏠', 'Solar Power' => '☀️', 'Beach Front' => '🏖️',
+                'Spa / Sauna' => '🧖', '3+ Car Garage' => '🚗', 'Luxury Fire Pit' => '🔥', 
+                'Concierge Service' => '🛎️', 'Walk-in Closet' => '👗', 'High Ceilings' => '⤴️', 
+                'Staff Quarters' => '👨‍💼', 'Backup Generator' => '⚡'
+            ];
+            include AFCG_PATH . 'templates/parts/listing-content.php'; 
+            
+            // GEOSPATIAL INTELLIGENCE
+            include AFCG_PATH . 'templates/parts/listing-map.php';
+            ?>
 
         </main>
 
         <!-- SIDEBAR -->
-        <aside class="afc-sidebar-modern">
-            
-            <!-- AGENT CARD -->
-            <div class="afcglide-agent-card">
-                <div class="afc-agent-photo-wrap">
-                    <img src="<?php echo esc_url($a_img); ?>" alt="<?php echo esc_attr($a_name); ?>">
-                </div>
-                
-                <h3 class="afc-agent-name"><?php echo esc_html($a_name); ?></h3>
-                <p class="afc-agent-title">Listing Specialist</p>
-                
-                <div class="afc-agent-actions">
-                    <?php if ($clean_phone): ?>
-                    <a href="tel:<?php echo $clean_phone; ?>" class="afc-btn-primary">
-                        📞 Call Agent
-                    </a>
-                    <a href="https://wa.me/<?php echo $clean_phone; ?>" class="afc-btn-primary" style="background: #25D366;">
-                        💬 WhatsApp
-                    </a>
-                    <?php endif; ?>
-                </div>
-            </div>
-
-        </aside>
+        <?php include AFCG_PATH . 'templates/parts/listing-sidebar.php'; ?>
 
     </div>
 

@@ -78,9 +78,15 @@ class AFCGlide_Metaboxes {
         ?>
         <div class="afc-metabox-content">
             <div class="afc-field">
-                <label class="afc-label">Property Headline</label>
+                <label class="afc-label">Property Headline (English)</label>
                 <input type="text" name="_listing_intro_text" value="<?php echo esc_attr( $intro ); ?>" class="afc-input" placeholder="e.g. Stunning Modern Villa in the Hills" style="font-size: 16px; font-weight: bold;">
-                <p class="afc-help-text">A captivating one-line header for the listing.</p>
+            </div>
+            
+            <?php $intro_es = get_post_meta( $post->ID, '_listing_intro_text_es', true ); ?>
+            <div class="afc-field" style="margin-top: 15px;">
+                <label class="afc-label" style="color: #059669;">Título de la Propiedad (Español)</label>
+                <input type="text" name="_listing_intro_text_es" value="<?php echo esc_attr( $intro_es ); ?>" class="afc-input" placeholder="ej: Impresionante Villa Moderna en las Colinas" style="font-size: 16px; border-color: #10b981;">
+                <p class="afc-help-text">Direct translation for the Costa Rican luxury network.</p>
             </div>
         </div>
         <?php
@@ -218,10 +224,11 @@ class AFCGlide_Metaboxes {
         $narrative = C::get_meta( $post->ID, C::META_NARRATIVE );
         ?>
         <div class="afc-metabox-content">
-            <p class="afc-help-text" style="margin-bottom: 20px;">Craft a compelling story for this luxury asset. Highlight unique heritage and bespoke features.</p>
+            <p class="afc-label" style="font-size: 15px; font-weight: 800; margin-bottom: 10px; color: #059669;">Narrativa de la Propiedad (Español)</p>
             <?php 
-            wp_editor( $narrative, 'afc_listing_narrative', [
-                'textarea_name' => '_listing_narrative',
+            $narrative_es = get_post_meta( $post->ID, '_listing_narrative_es', true );
+            wp_editor( $narrative_es, 'afc_listing_narrative_es', [
+                'textarea_name' => '_listing_narrative_es',
                 'media_buttons' => false,
                 'textarea_rows' => 12,
                 'teeny'         => false,
@@ -232,6 +239,23 @@ class AFCGlide_Metaboxes {
                 ]
             ] );
             ?>
+            
+            <div style="margin: 40px 0; padding-top: 40px; border-top: 2px solid #f1f5f9;">
+                <p class="afc-label" style="font-size: 15px; font-weight: 800; margin-bottom: 10px;">Property Narrative (English)</p>
+                <?php 
+                wp_editor( $narrative, 'afc_listing_narrative', [
+                    'textarea_name' => '_listing_narrative',
+                    'media_buttons' => false,
+                    'textarea_rows' => 12,
+                    'teeny'         => false,
+                    'quicktags'     => true,
+                    'tinymce'       => [
+                        'toolbar1' => 'formatselect,bold,italic,bullist,numlist,link,unlink,blockquote',
+                        'toolbar2' => ''
+                    ]
+                ] );
+                ?>
+            </div>
         </div>
         <?php
     }
@@ -427,11 +451,13 @@ class AFCGlide_Metaboxes {
 
         // Meta Map
         $meta_fields = [
-            '_listing_intro_text' => C::META_INTRO,
-            '_listing_narrative'    => C::META_NARRATIVE,
-            '_agent_name_display'   => C::META_AGENT_NAME,
-            '_agent_phone_display'  => C::META_AGENT_PHONE,
-            '_agent_photo_id'       => C::META_AGENT_PHOTO,
+            '_listing_intro_text'    => C::META_INTRO,
+            '_listing_intro_text_es' => C::META_INTRO_ES,
+            '_listing_narrative'     => C::META_NARRATIVE,
+            '_listing_narrative_es'  => C::META_NARRATIVE_ES,
+            '_agent_name_display'    => C::META_AGENT_NAME,
+            '_agent_phone_display'   => C::META_AGENT_PHONE,
+            '_agent_photo_id'        => C::META_AGENT_PHOTO,
             '_show_floating_whatsapp' => C::META_SHOW_WA,
             '_listing_hero_id'      => C::META_HERO_ID,
             '_listing_price'        => C::META_PRICE,
@@ -445,11 +471,25 @@ class AFCGlide_Metaboxes {
             '_listing_showing_schedule' => C::META_OPEN_HOUSE,
         ];
 
+        // 1. CLEAR SEARCH CACHE (Enterprise Refresh)
+        \AFCGlide\Listings\AFCGlide_Ajax_Handler::clear_filter_cache();
+
+        // 2. ENTERPRISE AUDIT LOG
+        $audit_log = get_post_meta( $post_id, C::META_AUDIT_LOG, true ) ?: [];
+        $audit_log[] = [
+            'user' => get_current_user_id(),
+            'time' => time(),
+            'action' => 'Listing Updated/Modified'
+        ];
+        // Keep only last 20 entries
+        if ( count($audit_log) > 20 ) array_shift($audit_log);
+        update_post_meta( $post_id, C::META_AUDIT_LOG, $audit_log );
+
 
         foreach ( $meta_fields as $form_key => $meta_key ) {
             if ( isset( $_POST[$form_key] ) ) {
                 // Use wp_kses_post for narrative to preserve HTML from wp_editor
-                if ( $form_key === '_listing_narrative' ) {
+                if ( in_array($form_key, ['_listing_narrative', '_listing_narrative_es']) ) {
                     $value = wp_kses_post( $_POST[$form_key] );
                 } else {
                     $value = sanitize_text_field( $_POST[$form_key] );

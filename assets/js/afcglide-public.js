@@ -29,16 +29,17 @@ jQuery(document).ready(function ($) {
             $grid.addClass('is-loading').css('opacity', '0.6');
 
             $.ajax({
-                url: afcglide_ajax_object.ajax_url,
+                url: afc_vars.ajax_url,
                 type: 'POST',
                 data: {
                     action: 'afcglide_filter_listings',
-                    nonce: afcglide_ajax_object.nonce,
+                    nonce: afc_vars.nonce,
                     page: page,
+                    lang: afc_vars.lang, // Support for bilingual filtering
                     filters: filterData
                 },
                 success: function (res) {
-                    isFetching = false; // Now this works!
+                    isFetching = false;
                     $grid.removeClass('is-loading').css('opacity', '1');
 
                     if (res.success) {
@@ -105,10 +106,10 @@ jQuery(document).ready(function ($) {
             const $btn = $(this).find('button');
             const originalText = $btn.text();
 
-            $btn.prop('disabled', true).text(afcglide_ajax_object.strings.loading || 'Registering...');
+            $btn.prop('disabled', true).text('Registering...');
 
             $.ajax({
-                url: afcglide_ajax_object.ajax_url,
+                url: afc_vars.ajax_url,
                 type: 'POST',
                 data: $(this).serialize() + '&action=afc_register_agent&nonce=' + $(this).find('[name="register_nonce"]').val(),
                 success: function (res) {

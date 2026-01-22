@@ -40,8 +40,8 @@ class AFCGlide_Ajax_Handler {
         check_ajax_referer( C::NONCE_AJAX, 'security' );
         
         $user_id = get_current_user_id();
-        if ( ! $user_id ) {
-            self::send_error( 'Session expired. Please log in again.' );
+        if ( ! $user_id || ! current_user_can( 'edit_posts' ) ) {
+            self::send_error( 'Access Denied: Specialized Agent credentials required.' );
         }
         
         // 2. GLOBAL LOCKDOWN CHECK
@@ -320,7 +320,20 @@ class AFCGlide_Ajax_Handler {
         
         $page = isset( $_POST['page'] ) ? intval( $_POST['page'] ) : 1;
         $filters = isset( $_POST['filters'] ) ? $_POST['filters'] : [];
+        $lang = isset( $_POST['lang'] ) ? sanitize_text_field( $_POST['lang'] ) : 'en';
+
+        // Set global language context for this AJAX request
+        $_GET['lang'] = $lang; 
         
+        // Generate Unique Cache Key based on inputs + Enterprise Cache Version + Language
+        $cache_ver = get_option( 'afcg_cache_version', '1' );
+        $cache_key = 'afcg_filter_' . $cache_ver . '_' . $lang . '_' . md5( serialize($filters) . '_' . $page );
+        $cached_response = get_transient( $cache_key );
+
+        if ( false !== $cached_response ) {
+            wp_send_json_success($cached_response);
+        }
+
         // Build query args
         $args = [
             'post_type'      => C::POST_TYPE,
@@ -372,17 +385,32 @@ class AFCGlide_Ajax_Handler {
                 }
             }
             wp_reset_postdata();
+        } else {
+            echo '<div class="afc-no-results">No luxury assets found matching your criteria.</div>';
         }
         
         $html = ob_get_clean();
         
-        wp_send_json_success([
+        $response = [
             'html'      => $html,
-            'max_pages' => $query->max_num_pages,
-            'found'     => $query->found_posts
-        ]);
+            'max_pages' => (int)$query->max_num_pages,
+            'found'     => (int)$query->found_posts
+        ];
+
+        // Cache for 1 hour (Enterprise Standard)
+        set_transient( $cache_key, $response, HOUR_IN_SECONDS );
+        
+        wp_send_json_success($response);
     }
     
+    /**
+     * Increment the global cache version to instantly invalidate all transients
+     */
+    public static function clear_filter_cache() {
+        $version = get_option( 'afcg_cache_version', '1' );
+        update_option( 'afcg_cache_version', (int)$version + 1 );
+    }
+
     /**
      * Send error response and exit
      */
