@@ -37,6 +37,7 @@ final class AFCGlide_Shortcodes {
         add_shortcode( 'afcglide_login', [ __CLASS__, 'render_login_form' ] );
         add_shortcode( 'afcglide_submit_listing', [ __CLASS__, 'render_submission_form' ] );
         add_shortcode( 'afcglide_listings_grid', [ __CLASS__, 'render_listing_grid' ] );
+        add_shortcode( 'afcglide_agent_hub', [ __CLASS__, 'render_agent_hub' ] );
         
         if ( class_exists('\AFCGlide\Reporting\AFCGlide_Scoreboard') ) {
             add_shortcode( 'afc_scoreboard', [ '\AFCGlide\Reporting\AFCGlide_Scoreboard', 'render_scoreboard' ] );
@@ -71,16 +72,16 @@ final class AFCGlide_Shortcodes {
             'show_search' => 'yes'
         ], $atts );
 
-        $paged = ( get_query_var( 'paged' ) ) ? get_query_var( 'paged' ) : 1;
+        $paged = ( get_query_var( 'paged' ) ) ? absint( get_query_var( 'paged' ) ) : 1;
         
         // Handle Search Queries
-        $search_term = isset($_GET['afc_query']) ? sanitize_text_field($_GET['afc_query']) : '';
-        $max_price   = isset($_GET['afc_max_price']) ? intval($_GET['afc_max_price']) : 0;
+        $search_term = isset($_GET['afc_query']) ? sanitize_text_field(wp_unslash($_GET['afc_query'])) : '';
+        $max_price   = isset($_GET['afc_max_price']) ? absint($_GET['afc_max_price']) : 0;
 
         $args = [
             'post_type'      => C::POST_TYPE, 
-            'posts_per_page' => (int) $atts['posts_per_page'], 
-            'post_status'    => sanitize_text_field( $atts['status'] ),
+            'posts_per_page' => absint( $atts['posts_per_page'] ), 
+            'post_status'    => sanitize_key( $atts['status'] ),
             'orderby'        => 'date',
             'order'          => 'DESC',
             'paged'          => $paged,
@@ -121,7 +122,7 @@ final class AFCGlide_Shortcodes {
             echo '</div>';
 
             if ( $query->max_num_pages > 1 ) {
-                echo '<div class="afc-pagination" style="margin-top:40px; text-align:center;">';
+                echo '<div class="afc-pagination">';
                 echo paginate_links([
                     'total' => $query->max_num_pages,
                     'prev_text' => '← Previous',
@@ -170,6 +171,112 @@ final class AFCGlide_Shortcodes {
         if ( file_exists( $template_path ) ) {
             include $template_path;
         }
+    }
+
+    public static function render_agent_hub() {
+        if ( post_password_required() ) {
+            return get_the_password_form();
+        }
+
+        if ( ! is_user_logged_in() ) {
+            return self::render_login_form();
+        }
+
+        $current_user = wp_get_current_user();
+        if ( ! current_user_can('edit_posts') ) {
+            return '<div class="afc-error-msg">Access Denied: Certified Agents Only.</div>';
+        }
+
+        ob_start();
+        $add_listing_url = home_url( '/' . C::get_option( C::OPT_PAGE_ADD_LISTING, 'add-listing' ) . '/' );
+        ?>
+        <div class="afc-agent-hub-wrapper">
+            
+            <!-- Visionary Header -->
+            <div class="afc-hub-header">
+                <div>
+                    <h1>Agent Production HQ</h1>
+                    <p>Welcome back, <span style="color: #1e293b;"><?php echo esc_html($current_user->display_name); ?></span>. Initialize your next global asset below.</p>
+                </div>
+                <a href="<?php echo esc_url( $add_listing_url ); ?>" class="afc-launch-btn">
+                    <span style="font-size: 18px;">🚀</span> Launch Asset
+                </a>
+            </div>
+
+            <!-- Scoreboard Integration -->
+            <div style="margin-bottom: 40px;">
+                <?php echo \AFCGlide\Reporting\AFCGlide_Scoreboard::render_scoreboard( $current_user->ID ); ?>
+            </div>
+
+            <!-- Asset Inventory Section -->
+            <div class="afc-inventory-glass">
+                <div class="afc-inventory-header">
+                    <h3>💼 Local Asset Inventory</h3>
+                </div>
+
+                <?php 
+                $listings = get_posts([
+                    'post_type' => C::POST_TYPE,
+                    'author' => $current_user->ID,
+                    'posts_per_page' => -1,
+                    'post_status' => ['publish', 'pending', 'sold', 'draft']
+                ]);
+
+                if ( empty($listings) ) : ?>
+                    <div style="padding: 80px; text-align: center; color: #94a3b8;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">🏠</div>
+                        <p style="font-weight: 600;">No assets detected in your current node.</p>
+                        <a href="<?php echo esc_url( home_url('/add-listing/') ); ?>" style="color: #3b82f6; font-weight: 800; text-decoration: none;">Deploy your first listing →</a>
+                    </div>
+                <?php else : ?>
+                    <table class="afc-inventory-table">
+                        <thead>
+                            <tr>
+                                <th>Asset Identity</th>
+                                <th>Market Value</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Operations</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($listings as $listing) : 
+                                $price = (int) C::get_meta($listing->ID, C::META_PRICE);
+                                $status = $listing->post_status;
+                            ?>
+                            <tr onmouseover="this.style.background='#fbfdff'" onmouseout="this.style.background='transparent'">
+                                <td>
+                                    <div class="afc-asset-identity">
+                                        <strong><?php echo esc_html($listing->post_title); ?></strong>
+                                        <span>Modified: <?php echo get_the_modified_date('M j, Y', $listing->ID); ?></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="afc-market-value">$<?php echo number_format($price); ?></span>
+                                </td>
+                                <td>
+                                    <span class="afc-status-pill afc-status-<?php echo esc_attr($status); ?>">
+                                        <?php echo $status === 'publish' ? 'Live' : esc_html($status); ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="afc-ops-row">
+                                        <a href="<?php echo esc_url( add_query_arg(['post' => $listing->ID], $add_listing_url) ); ?>" class="afc-op-btn afc-op-edit">EDIT</a>
+                                        <a href="<?php echo get_permalink($listing->ID); ?>" target="_blank" class="afc-op-btn afc-op-view">VIEW</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php endif; ?>
+            </div>
+            
+            <div class="afc-hub-footer">
+                Powered by AFCGlide Global Infrastructure
+            </div>
+        </div>
+        <?php
+        return ob_get_clean();
     }
 
     public static function render_login_form() {

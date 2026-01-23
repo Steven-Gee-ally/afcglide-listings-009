@@ -115,6 +115,7 @@
     pointer-events: none;
     opacity: 0.8;
 }
+
 /* 20. SEARCH TERMINAL (The Pazaaz Window) */
 .afc-search-terminal {
     background: #ffffff;
@@ -190,4 +191,242 @@
     background: #6366f1 !important;
     transform: translateY(-2px);
     box-shadow: 0 10px 15px rgba(99, 102, 241, 0.2);
+}
+
+/* Agent Hub Styles */
+.afc-agent-hub-wrapper {
+    font-family: 'Inter', sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    color: #1e293b;
+}
+
+.afc-hub-header {
+    background: linear-gradient(135deg, #E0F2FE 0%, #DCFCE7 50%, #F3E8FF 100%);
+    padding: 40px;
+    border-radius: 24px;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+}
+
+.afc-hub-header h1 {
+    margin: 0;
+    font-weight: 900;
+    font-size: 32px;
+    letter-spacing: -1px;
+    color: #0f172a;
+}
+
+.afc-hub-header p {
+    margin: 10px 0 0;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.afc-launch-btn {
+    background: #10b981;
+    color: white !important;
+    padding: 18px 32px;
+    border-radius: 14px;
+    font-weight: 800;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.2);
+    transition: 0.3s;
+}
+
+.afc-launch-btn:hover {
+    transform: translateY(-3px);
+}
+
+.afc-inventory-glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(15px);
+    border-radius: 24px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04);
+}
+
+.afc-inventory-header {
+    padding: 25px 35px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.afc-inventory-header h3 {
+    margin: 0;
+    font-weight: 900;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #64748b;
+}
+
+.afc-inventory-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.afc-inventory-table thead tr {
+    background: #f8fafc;
+    text-align: left;
+}
+
+.afc-inventory-table th {
+    padding: 20px 35px;
+    font-size: 11px;
+    font-weight: 900;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.afc-inventory-table td {
+    padding: 25px 35px;
+}
+
+.afc-asset-identity strong {
+    display: block;
+    font-size: 16px;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+.afc-asset-identity span {
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 700;
+}
+
+.afc-market-value {
+    font-size: 16px;
+    font-weight: 900;
+    color: #059669;
+}
+
+.afc-status-pill {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+}
+
+.afc-status-publish {
+    color: #10b981;
+    background: #ecfdf5;
+    border-color: #10b98133;
+}
+
+.afc-status-sold {
+    color: #ef4444;
+    background: #fef2f2;
+    border-color: #ef444433;
+}
+
+.afc-status-pending {
+    color: #f59e0b;
+    background: #fffbeb;
+    border-color: #f59e0b33;
+}
+
+.afc-status-draft {
+    color: #64748b;
+    background: #f1f5f9;
+    border-color: #64748b33;
+}
+
+.afc-ops-row {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.afc-op-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 800;
+    text-decoration: none;
+    border: 1px solid;
+    transition: 0.2s;
+}
+
+.afc-op-edit {
+    background: #eff6ff;
+    color: #1e40af;
+    border-color: #bfdbfe;
+}
+
+.afc-op-edit:hover {
+    background: #dbeafe;
+}
+
+.afc-op-view {
+    background: #f8fafc;
+    color: #64748b;
+    border-color: #e2e8f0;
+}
+
+/* Scoreboard Quick Styles */
+.afc-modern-scoreboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+}
+
+.afc-stat-node {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+}
+
+.afc-stat-label {
+    font-size: 10px;
+    font-weight: 900;
+    color: #94a3b8;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.afc-stat-value {
+    font-size: 28px;
+    font-weight: 900;
+    color: #1e293b;
+    margin-bottom: 5px;
+}
+
+.afc-stat-sub {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.afc-hub-footer {
+    text-align: center;
+    margin-top: 50px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #cbd5e1;
+    letter-spacing: 2px;
+    text-transform: uppercase;
 }

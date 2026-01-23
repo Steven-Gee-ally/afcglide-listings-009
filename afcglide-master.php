@@ -9,6 +9,8 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+echo '<!-- AFCGLIDE-CORE-PULSE-ACTIVE -->';
+
 /**
  * 1. DIRECTORY CONSTANTS
  */
@@ -170,7 +172,7 @@ function afcglide_frontend_assets() {
 
     // Submission Form Assets (Check for shortcode or specific page logic)
     global $post;
-    if ( is_a( $post, 'WP_Post' ) && has_shortcode( $post->post_content, 'afcglide_submission_form' ) ) {
+    if ( is_a( $post, 'WP_Post' ) && has_shortcode( $post->post_content, 'afcglide_submit_listing' ) ) {
         wp_enqueue_style( 
             'afc-submission-css', 
             AFCG_URL . 'assets/css/afcglide-frontend-submission.css', 
@@ -320,120 +322,102 @@ function afcglide_global_whatsapp() {
 }
 
 /**
- * 10. MULTILINGUAL ENGINE (EN/ES)
  */
 function afcglide_get_current_lang() {
     if ( isset($_GET['lang']) && in_array($_GET['lang'], ['en', 'es']) ) {
-        // Option: set cookie here for persistence
         return $_GET['lang'];
     }
-    return 'en'; // Default
+    return 'en';
 }
 
 function afcglide_get_localized_url( $lang ) {
     return add_query_arg( 'lang', $lang, get_permalink() );
 }
 
-add_action( 'wp_footer', 'afcglide_language_toggle' );
-function afcglide_language_toggle() {
-    // Only show on AFC pages for now or globally? Let's go global for Enterprise feel.
+/**
+ * 11. INVINCIBLE FOOTER UI (GLOBAL)
+ */
+add_action( 'wp_head', 'afcglide_render_global_footer_ui' );
+function afcglide_render_global_footer_ui() {
+    echo '<!-- AFCGLIDE-HEAD-PULSE-ACTIVE -->';
     $current_lang = afcglide_get_current_lang();
+    $agent_hub_slug = \AFCGlide\Core\Constants::get_option( \AFCGlide\Core\Constants::OPT_PAGE_AGENT_HUB, 'agent-hub' );
+    $target_url = is_user_logged_in() ? home_url('/' . $agent_hub_slug . '/') : wp_login_url();
+    $can_access = ! is_user_logged_in() || current_user_can('read');
     ?>
     <style>
-        .afc-lang-switcher {
-            position: fixed;
-            bottom: 30px;
-            left: 30px;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            padding: 8px 15px;
-            border-radius: 50px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            z-index: 10000;
-            display: flex;
-            gap: 15px;
-            font-family: 'Inter', sans-serif;
-            font-weight: 800;
-            font-size: 11px;
-            letter-spacing: 1px;
-            border: 1px solid rgba(0,0,0,0.05);
+        .afc-footer-toolbar {
+            position: fixed !important;
+            bottom: 30px !important;
+            left: 30px !important;
+            z-index: 99999999 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            font-family: 'Inter', sans-serif !important;
         }
-        .afc-lang-switcher a {
-            text-decoration: none;
-            color: #94a3b8;
-            transition: all 0.3s ease;
-        }
-        .afc-lang-switcher a.active {
-            color: #1e293b;
-        }
-        .afc-lang-switcher a:hover {
-            color: #10b981;
-        }
-    </style>
-    <div class="afc-lang-switcher">
-        <a href="<?php echo esc_url( add_query_arg('lang', 'en') ); ?>" class="<?php echo $current_lang === 'en' ? 'active' : ''; ?>">EN</a>
-        <span style="color: #e2e8f0;">|</span>
-        <a href="<?php echo esc_url( add_query_arg('lang', 'es') ); ?>" class="<?php echo $current_lang === 'es' ? 'active' : ''; ?>">ES</a>
-    </div>
 
-    <?php if ( is_singular( \AFCGlide\Core\Constants::POST_TYPE ) ) : ?>
-    <!-- ELITE SHOWING MODAL -->
-    <div id="afc-showing-modal" class="afc-modal-overlay" style="display:none;">
-        <div class="afc-modal-container">
-            <button class="afc-modal-close">×</button>
-            <div class="afc-modal-header">
-                <h3>💎 <?php echo $current_lang === 'es' ? 'Solicitar Visita Privada' : 'Request Private Showing'; ?></h3>
-                <p><?php echo $current_lang === 'es' ? 'Nuestros especialistas coordinarán su recorrido exclusivo.' : 'Our specialists will coordinate your exclusive tour.'; ?></p>
-            </div>
-            <form id="afc-showing-form">
-                <input type="hidden" name="post_id" value="<?php echo get_the_ID(); ?>">
-                <input type="text" name="lead_name" placeholder="<?php echo $current_lang === 'es' ? 'Nombre Completo' : 'Full Name'; ?>" required>
-                <input type="email" name="lead_email" placeholder="<?php echo $current_lang === 'es' ? 'Correo Electrónico' : 'Email Address'; ?>" required>
-                <input type="text" name="lead_phone" placeholder="<?php echo $current_lang === 'es' ? 'Teléfono / WhatsApp' : 'Phone Number'; ?>">
-                <textarea name="lead_message" placeholder="<?php echo $current_lang === 'es' ? 'Intereses o preguntas especiales...' : 'Special interests or questions...'; ?>"></textarea>
-                <button type="submit" class="afc-btn-primary"><?php echo $current_lang === 'es' ? 'Enviar Solicitud' : 'Submit Request'; ?></button>
-                <div id="afc-modal-feedback"></div>
-            </form>
+        .afc-lang-switcher-pill {
+            background: rgba(255, 255, 255, 0.98) !important;
+            backdrop-filter: blur(10px) !important;
+            padding: 8px 16px !important;
+            border-radius: 50px !important;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+            display: flex !important;
+            gap: 12px !important;
+            font-weight: 800 !important;
+            font-size: 11px !important;
+            letter-spacing: 1px !important;
+            border: 1px solid rgba(0,0,0,0.08) !important;
+            height: 40px !important;
+            align-items: center !important;
+        }
+        .afc-lang-switcher-pill a { text-decoration: none !important; color: #94a3b8 !important; transition: 0.2s !important; }
+        .afc-lang-switcher-pill a.active { color: #1e293b !important; }
+        .afc-lang-switcher-pill a:hover:not(.active) { color: #64748b !important; }
+
+        .afc-agent-access-btn {
+            background: rgba(255, 255, 255, 0.98) !important;
+            backdrop-filter: blur(10px) !important;
+            color: #1e293b !important;
+            padding: 0 20px !important;
+            border-radius: 50px !important;
+            font-size: 10px !important;
+            font-weight: 800 !important;
+            text-decoration: none !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1.2px !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08) !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            border: 1px solid #ff5a2d !important; /* Subtle Orange Accent */
+            height: 40px !important;
+            transition: all 0.3s ease !important;
+        }
+        .afc-agent-access-btn:hover { 
+            background: #ff5a2d !important; 
+            color: #fff !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 20px rgba(255, 90, 45, 0.2) !important;
+        }
+        .afc-agent-access-btn span { font-size: 13px !important; filter: grayscale(1) brightness(0.5); transition: 0.3s; }
+        .afc-agent-access-btn:hover span { filter: none; }
+    </style>
+
+    <div class="afc-footer-toolbar">
+        <div class="afc-lang-switcher-pill">
+            <a href="<?php echo esc_url( add_query_arg('lang', 'en') ); ?>" class="<?php echo $current_lang === 'en' ? 'active' : ''; ?>">EN</a>
+            <span style="color: #e2e8f0;">|</span>
+            <a href="<?php echo esc_url( add_query_arg('lang', 'es') ); ?>" class="<?php echo $current_lang === 'es' ? 'active' : ''; ?>">ES</a>
         </div>
+
+        <?php if ( $can_access ) : ?>
+            <a href="<?php echo esc_url($target_url); ?>" class="afc-agent-access-btn">
+                <span>🚀</span> Agent Access
+            </a>
+        <?php endif; ?>
     </div>
-
-    <style>
-        .afc-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 100000; display: flex; align-items: center; justify-content: center; }
-        .afc-modal-container { background: white; width: 100%; max-width: 450px; padding: 40px; border-radius: 20px; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.3); }
-        .afc-modal-close { position: absolute; top: 20px; right: 20px; font-size: 24px; border: none; background: none; cursor: pointer; color: #94a3b8; }
-        .afc-modal-header h3 { margin-top: 0; color: #1e293b; font-size: 22px; }
-        .afc-modal-header p { color: #64748b; font-size: 14px; margin-bottom: 30px; }
-        #afc-showing-form input, #afc-showing-form textarea { width: 100%; margin-bottom: 20px; padding: 15px; border: 1px solid #e2e8f0; border-radius: 10px; font-family: inherit; }
-        #afc-showing-form button { width: 100%; padding: 18px; font-weight: 800; }
-    </style>
-
-    <script>
-    jQuery(document).ready(function($) {
-        $('.afc-trigger-showing').click(function() { 
-            $('#afc-showing-modal').fadeIn(300).css('display', 'flex'); 
-        });
-        $('.afc-modal-close, .afc-modal-overlay').click(function(e) {
-            if (e.target !== this) return;
-            $('#afc-showing-modal').fadeOut(300);
-        });
-        $('#afc-showing-form').submit(function(e) {
-            e.preventDefault();
-            const $btn = $(this).find('button');
-            $btn.prop('disabled', true).text('⌛ SYNCING...');
-            $.post(afc_vars.ajax_url, $(this).serialize() + '&action=afc_submit_lead&security=' + afc_vars.nonce, function(res) {
-                if(res.success) {
-                    $('#afc-modal-feedback').html('<p style="color:#10b981; margin-top:15px; font-weight:bold;">' + res.data + '</p>');
-                    $btn.text('✅ SENT');
-                    setTimeout(function() { $('#afc-showing-modal').fadeOut(300); }, 2000);
-                } else {
-                    alert(res.data);
-                    $btn.prop('disabled', false).text('RETRY REQUEST');
-                }
-            });
-        });
-    });
-    </script>
-    <?php endif; ?>
     <?php
 }
 

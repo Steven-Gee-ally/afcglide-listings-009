@@ -49,6 +49,7 @@ final class Constants {
      * Meta Keys - Media
      */
     const META_HERO_ID     = '_listing_hero_id';
+    const META_SLIDER_IDS  = '_listing_slider_ids';  // NEW - Featured 4 photos
     const META_GALLERY_IDS = '_listing_gallery_ids';
     const META_STACK_IDS   = '_listing_stack_ids';
     
@@ -84,6 +85,8 @@ final class Constants {
     const OPT_WA_GLOBAL       = 'afc_whatsapp_global';
     const OPT_GLOBAL_LOCKDOWN = 'afc_global_lockdown';
     const OPT_IDENTITY_SHIELD = 'afc_identity_shield';
+    const OPT_PAGE_ADD_LISTING= 'afc_page_add_listing';
+    const OPT_PAGE_AGENT_HUB  = 'afc_page_agent_hub';
     
     /**
      * Post Type
@@ -115,7 +118,8 @@ final class Constants {
     /**
      * Limits
      */
-    const MAX_GALLERY      = 16;
+    const MAX_SLIDER       = 4;   // NEW - Featured slider limit
+    const MAX_GALLERY      = 12;  // CHANGED from 16 to 12
     const MAX_STACK        = 3;
     const MIN_IMAGE_WIDTH  = 1200;
     

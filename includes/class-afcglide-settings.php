@@ -36,6 +36,8 @@ class AFCGlide_Settings {
         register_setting( 'afcglide_settings_group', 'afc_quality_gatekeeper' );
         register_setting( 'afcglide_settings_group', 'afc_admin_lockdown' );
         register_setting( 'afcglide_settings_group', 'afc_whatsapp_global' );
+        register_setting( 'afcglide_settings_group', 'afc_page_add_listing' );
+        register_setting( 'afcglide_settings_group', 'afc_page_agent_hub' );
     }
 
     public static function render_settings_html() {
@@ -169,6 +171,20 @@ class AFCGlide_Settings {
                             <input type="checkbox" name="afc_whatsapp_global" value="1" <?php checked(1, get_option('afc_whatsapp_global', 0)); ?>>
                             <span class="slider"></span>
                         </label>
+                    </div>
+                    <div class="afc-settings-row">
+                        <div class="afc-label">
+                            Add Listing Page Slug
+                            <span class="afc-description">The relative path to your listing submission page. Default: add-listing</span>
+                        </div>
+                        <input type="text" name="afc_page_add_listing" value="<?php echo esc_attr( get_option('afc_page_add_listing', 'add-listing') ); ?>" placeholder="add-listing" style="max-width:200px;">
+                    </div>
+                    <div class="afc-settings-row">
+                        <div class="afc-label">
+                            Agent Hub Page Slug
+                            <span class="afc-description">The relative path to your agent dashboard page. Default: agent-hub</span>
+                        </div>
+                        <input type="text" name="afc_page_agent_hub" value="<?php echo esc_attr( get_option('afc_page_agent_hub', 'agent-hub') ); ?>" placeholder="agent-hub" style="max-width:200px;">
                     </div>
                 </div>
 

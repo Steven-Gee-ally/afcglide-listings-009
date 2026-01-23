@@ -150,9 +150,17 @@ class AFCGlide_Admin_Menu {
         <?php
     }
 
-    private static function calculate_portfolio_volume() {
+   private static function calculate_portfolio_volume() {
         global $wpdb;
-        $query = "SELECT SUM(CAST(meta_value AS UNSIGNED)) FROM $wpdb->postmeta WHERE meta_key = '_listing_price'";
+        // Only sum 'publish' status assets to show true market value
+        $query = "
+            SELECT SUM(CAST(pm.meta_value AS UNSIGNED)) 
+            FROM {$wpdb->postmeta} pm
+            INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+            WHERE pm.meta_key = '_listing_price' 
+            AND p.post_status = 'publish'
+            AND p.post_type = 'afcglide_listing'
+        ";
         return (float) $wpdb->get_var($query) ?: 0;
     }
 
@@ -259,6 +267,9 @@ class AFCGlide_Admin_Menu {
         if ( get_option('afc_lockdown_master') !== 'yes' ) return;
 
         add_filter( 'map_meta_cap', function( $caps, $cap, $user_id, $args ) {
+            // 🛡️ Admins/Brokers are exempt from the lockdown
+            if ( user_can( $user_id, 'manage_options' ) ) return $caps;
+
             // Define the "Edit" capabilities we want to freeze
             $lock_caps = [ 'edit_post', 'delete_post', 'edit_afcglide_listing', 'delete_afcglide_listing' ];
             
